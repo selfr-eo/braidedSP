@@ -1,3 +1,7 @@
+# Figs folder
+figs/
+odir/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
