@@ -58,6 +58,65 @@ def haversine(lat1, lon1, lat2, lon2):
     
     return distance
 
+
+
+def sort_cl_by_closestReach(start_reach,end_reach,distance_list,cl):
+     
+     # Extract coordinates based on reach ID and order direction and append to list
+    all_coords = []
+    reach_order_id = []
+    first_reach_list = [entry for entry in distance_list if entry[0] == start_reach][0]
+
+    coords = list(cl.geometry[first_reach_list[0]].coords)
+    reach_order_id.append(start_reach)
+
+    # if connecting point (one with min distance) is the endpoint of the line, append coords as normal (starting w start)
+    if first_reach_list[5] == 1:
+        all_coords.append(coords)
+        connecting_end = 1  # search for next reach based on connecting end!
+    else:
+        all_coords.append(coords[::-1])
+        connecting_end = 0
+    
+    reachEndpoint = False
+    prior_reach_list = first_reach_list
+    i = 0
+    while reachEndpoint == False and i < len(distance_list):
+
+        if connecting_end == 1: # going from the prior reach's endpoint
+            current_reach = prior_reach_list[4] # (closestReachID_e)
+            currentColID = prior_reach_list[6] # (closestColID_e)
+
+        
+        if connecting_end == 0: # going from the prior reach's start point
+            current_reach = prior_reach_list[3] # (closestReachID_s)
+            currentColID = prior_reach_list[5] # (closestColID_s) -- this is the col ID for the (prior-to-current) connection
+
+        reach_order_id.append(current_reach)
+
+        current_reach_list = [entry for entry in distance_list if entry[0] == current_reach][0]
+
+        coords = list(cl.geometry[current_reach_list[0]].coords)
+
+
+        if currentColID == 0: # if closest pixel is a start point, append like normal!
+            all_coords.append(coords)
+            connecting_end = 1 # Connection for next reach will be the current end point
+        else:
+            all_coords.append(coords[::-1])
+            connecting_end = 0
+
+        if current_reach == end_reach:
+            #print('BREAKING')
+            break
+        i = i+1
+
+        # Update reach list
+        prior_reach_list = current_reach_list
+
+
+    return all_coords, reach_order_id
+
 def sort_SWORD_cl(cl,showPlots=True):
 
     # 1. EXTRACT REACH ENDPOINTS
