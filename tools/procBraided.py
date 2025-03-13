@@ -290,7 +290,9 @@ def getNearestMaskDate(pixcdate, tileID, LFmonths, HFmonths):
     # LFmonths and HFmonths - list of low flow and high flow months, respectively
 
     maskdate = pixcdate[4:6]+pixcdate[2:4]
-    water_mask_tiff = glob.glob("/Volumes/OneTouch/work/water_masks/brahmaputra/"+tileID+"/S2*"+str(maskdate)+".tif")
+    #water_mask_tiff = glob.glob("/Volumes/OneTouch/work/water_masks/brahmaputra/"+tileID+"/S2*"+str(maskdate)+".tif")
+    watermask_string = r"D:\work\water_masks\brahmaputra\{a}\S2_WaterMask_NDWI_{b}.tif".format(a=tileID,b=maskdate)
+    water_mask_tiff = glob.glob(watermask_string)
 
 
      # Need to find next closest mask in the same season...
@@ -316,7 +318,8 @@ def getNearestMaskDate(pixcdate, tileID, LFmonths, HFmonths):
                     nextmonth = str(nextmonth)
 
                 maskdate = nextmonth+pixcdate[2:4]
-                water_mask_tiff = glob.glob("/Volumes/OneTouch/work/water_masks/brahmaputra/"+tileID+"/S2*"+str(maskdate)+".tif")
+                watermask_string = r"D:\work\water_masks\brahmaputra\{a}\S2_WaterMask_NDWI_{b}.tif".format(a=tileID,b=maskdate)
+                water_mask_tiff = glob.glob(watermask_string)
                 if water_mask_tiff:
                     break
 
@@ -329,7 +332,8 @@ def getNearestMaskDate(pixcdate, tileID, LFmonths, HFmonths):
                     nextmonth = str(nextmonth)
 
                 maskdate = nextmonth+pixcdate[2:4]
-                water_mask_tiff = glob.glob("/Volumes/OneTouch/work/water_masks/brahmaputra/"+tileID+"/S2*"+str(maskdate)+".tif")
+                watermask_string = r"D:\work\water_masks\brahmaputra\{a}\S2_WaterMask_NDWI_{b}.tif".format(a=tileID,b=maskdate)
+                water_mask_tiff = glob.glob(watermask_string)
                 if water_mask_tiff:
                     break
 
@@ -342,7 +346,8 @@ def getNearestMaskDate(pixcdate, tileID, LFmonths, HFmonths):
                     nextmonth = str(nextmonth)
 
                 maskdate = nextmonth+pixcdate[2:4]
-                water_mask_tiff = glob.glob("/Volumes/OneTouch/work/water_masks/brahmaputra/"+tileID+"/S2*"+str(maskdate)+".tif")
+                watermask_string = r"D:\work\water_masks\brahmaputra\{a}\S2_WaterMask_NDWI_{b}.tif".format(a=tileID,b=maskdate)
+                water_mask_tiff = glob.glob(watermask_string)
                 if water_mask_tiff:
                     break
 

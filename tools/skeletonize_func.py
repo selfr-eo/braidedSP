@@ -443,7 +443,7 @@ def order_raster_from_endpoint(subskel,branch):
 # ---------------------------- (PRIMARY FUNCTIONS) ----------------------------
 
 
-def get_skeleton(mask_image,pixcdate,figdir,dilate_amount,gauss_amount,savePlot=False):
+def get_skeleton(mask_image,pixcdate,figdir,dilate_amount,gauss_amount,season='LF',second_dilation=True,savePlot=False):
     # Function for extracting the initial skeleton from binary raster image
     # INPUTS:
     #       - mask_image: binary raster image of water (1s) and not water (0s)
@@ -457,13 +457,13 @@ def get_skeleton(mask_image,pixcdate,figdir,dilate_amount,gauss_amount,savePlot=
     print('...........Running get skeleton algorithm...........')
 
 
-    LFmonths = [1,2,3,4,5,11,12]
-    HFmonths = [6,7,8,9,10]
+    # LFmonths = [1,2,3,4,5,11,12]
+    # HFmonths = [6,7,8,9,10]
 
-    if int(pixcdate[4:6]) in HFmonths:
-        season = 'HF'
-    if int(pixcdate[4:6]) in LFmonths:
-        season = 'LF'
+    # if int(pixcdate[4:6]) in HFmonths:
+    #     season = 'HF'
+    # if int(pixcdate[4:6]) in LFmonths:
+    #     season = 'LF'
     
 
     if season == 'LF':
@@ -485,7 +485,10 @@ def get_skeleton(mask_image,pixcdate,figdir,dilate_amount,gauss_amount,savePlot=
         smoothed_mask = smoothed_mask > 0.6  # Adjustable threshold
 
         # Step 3.2: Perform secondary dilation
-        dilated_mask2 = binary_dilation(smoothed_mask, footprint=createKernel(dilate_amount)) # OG 10
+        if second_dilation == True:
+            dilated_mask2 = binary_dilation(smoothed_mask, footprint=createKernel(dilate_amount)) # OG 10
+        else:
+            dilated_mask2 = smoothed_mask
 
         # Step 3.1: Select again the largest connected structure
         labeled_mask, num_features = label(dilated_mask2, return_num=True)
@@ -512,7 +515,10 @@ def get_skeleton(mask_image,pixcdate,figdir,dilate_amount,gauss_amount,savePlot=
         smoothed_mask = smoothed_mask > 0.6  # Adjustable threshold (OG 0.8)
 
         # Step 3.2: Perform secondary dilation
-        dilated_mask2 = binary_dilation(smoothed_mask, footprint=createKernel(dilate_amount)) # OG 20
+        if second_dilation == True:
+            dilated_mask2 = binary_dilation(smoothed_mask, footprint=createKernel(dilate_amount)) # OG 10
+        else:
+            dilated_mask2 = smoothed_mask
 
         # Step 3.1: Select again the largest connected structure
         labeled_mask, num_features = label(dilated_mask2, return_num=True)
@@ -531,7 +537,10 @@ def get_skeleton(mask_image,pixcdate,figdir,dilate_amount,gauss_amount,savePlot=
         endpoints = find_endpoints(skeleton)
 
         # display results and save to figure
-        fig, axes = plt.subplots(nrows=1, ncols=6, figsize=(16, 4), sharex=True, sharey=True)
+        if second_dilation == True:
+            fig, axes = plt.subplots(nrows=1, ncols=6, figsize=(16, 4), sharex=True, sharey=True)
+        else:
+            fig, axes = plt.subplots(nrows=1, ncols=5, figsize=(16, 4), sharex=True, sharey=True)
         ax = axes.ravel()
 
         ax[0].imshow(mask_image, cmap=plt.cm.gray)
@@ -550,15 +559,23 @@ def get_skeleton(mask_image,pixcdate,figdir,dilate_amount,gauss_amount,savePlot=
         ax[3].axis('off')
         ax[3].set_title('Gaussian filter', fontsize=15)
 
-        ax[4].imshow(largest_component_mask_smoothed, cmap=plt.cm.gray)
-        ax[4].axis('off')
-        ax[4].set_title('Secondary dilation', fontsize=15)
+        if second_dilation == True:
+            ax[4].imshow(largest_component_mask_smoothed, cmap=plt.cm.gray)
+            ax[4].axis('off')
+            ax[4].set_title('Secondary dilation', fontsize=15)
 
-        ax[5].imshow(np.zeros_like(skeleton), cmap='gray')
-        y, x = np.where(skeleton == 1)  # Get skeleton coordinates
-        ax[5].scatter(x, y, color='red', s=0.05)  # Plot skeleton points as red dots
-        ax[5].axis('off')
-        ax[5].set_title('Skeleton', fontsize=15)
+            ax[5].imshow(np.zeros_like(skeleton), cmap='gray')
+            y, x = np.where(skeleton == 1)  # Get skeleton coordinates
+            ax[5].scatter(x, y, color='red', s=0.05)  # Plot skeleton points as red dots
+            ax[5].axis('off')
+            ax[5].set_title('Skeleton', fontsize=15)
+
+        else:
+            ax[4].imshow(np.zeros_like(skeleton), cmap='gray')
+            y, x = np.where(skeleton == 1)  # Get skeleton coordinates
+            ax[4].scatter(x, y, color='red', s=0.05)  # Plot skeleton points as red dots
+            ax[4].axis('off')
+            ax[4].set_title('Skeleton', fontsize=15)
 
         fig.tight_layout()
         #fig.suptitle("Dilation: "+str(dilate_amount)+", Gauss: "+str(gauss_amount))
@@ -772,7 +789,90 @@ def get_labeled_skeleton(final_skeleton,pixcdate,figdir,savePlot=False):
     return labeled_skeleton
 
 
+
+def find_nearest_branch(subskel,labeled_skeleton):
+    # subsket is a skeleton with less only 1 pixel
+    # labeled_skeleton is the original skeleton with branch IDs
+    # returns the nearest branch ID to the subskel
+    print('Finding nearest branch to branch with less than 1 pixel...')
+    y,x = np.where(subskel > 0)
+    y = y[0]
+    x = x[0]
+
+    # nearest positive value in labeled_skeleton that is not at the same location as itself, extract branch ID
+    # compute distance from y,x to all other postive values in labeled_skeleton
+    y2,x2 = np.where(labeled_skeleton > 0)
+    distances = np.sqrt((y2-y)**2 + (x2-x)**2)
+    distances = np.where(distances == 0, np.inf, distances)
+    nearest_branch = np.argmin(distances)
+
+    print('nearest branch: ',labeled_skeleton[y2[nearest_branch]][x2[nearest_branch]])
+    return labeled_skeleton[y2[nearest_branch]][x2[nearest_branch]]
+
+
+
 def extract_cl_from_skeleton(labeled_skeleton,water_mask_tiff):
+
+    print('...........Running centerline extraction from skeleton algorithm...........')
+
+    line_data = []
+    skipped_branches = []
+    for branch in np.unique(labeled_skeleton):
+        print('Processing branch No. '+str(branch)+'...')
+        if branch == 0:
+            continue
+
+        # extract subskeleton
+        subskel = np.zeros_like(labeled_skeleton)
+        subskel[labeled_skeleton == branch] =  1
+        # if subskeleton has less than 1 pixels, store the branch ID and append that pixel to nearest branch outside of the branch loop
+        if len(np.where(subskel > 0)[0]) == 1:
+            print('Branch No. '+str(branch)+', has only than 1 pixel! Skipping and merging later...')
+            skipped_branches.append(branch)
+            continue
+
+        # order raster from endpoint
+        pixel_coords_x,pixel_coords_y = order_raster_from_endpoint(subskel,branch)
+
+        # Convert ordered pixel coordinates to lat lon
+        line = pixel_coordinates2latlonline(water_mask_tiff,pixel_coords_y,pixel_coords_x,branch,reverse=True)
+
+        # append gdf line to overall gdf with branch id
+        line_data.append({'branch_id': branch, 'geometry': line})
+
+    # go through skipped branches, and append to nearest branch
+    for branch in skipped_branches:
+        print('Merging pixels in branch No. '+str(branch)+' to nearest branch...')
+        # extract subskeleton
+        subskel = np.zeros_like(labeled_skeleton)
+        subskel[labeled_skeleton == branch] =  1
+
+        # locate nearest pixel from another branch
+        nearest_branch = find_nearest_branch(subskel,labeled_skeleton)
+
+        # merge pixels
+        labeled_skeleton[labeled_skeleton == branch] = nearest_branch
+
+        # rerun order raster from endpoint and convert to lat lon for the nearest branch with new appended pixel
+        subskel = np.zeros_like(labeled_skeleton)
+        subskel[labeled_skeleton == nearest_branch] =  1
+        pixel_coords_x,pixel_coords_y = order_raster_from_endpoint(subskel,nearest_branch)
+
+        # Convert ordered pixel coordinates to lat lon
+        line = pixel_coordinates2latlonline(water_mask_tiff,pixel_coords_y,pixel_coords_x,nearest_branch,reverse=True)
+
+        # REMOVE old line with branch_id = nearest_branch from line_data
+        line_data = [line for line in line_data if line['branch_id'] != nearest_branch]
+
+        # append gdf line to overall gdf with branch id
+        line_data.append({'branch_id': nearest_branch, 'geometry': line})
+
+    cl_gdf_labeled = gpd.GeoDataFrame(line_data, crs="EPSG:4326")  # Assuming WGS84
+    return cl_gdf_labeled
+
+
+
+def extract_cl_from_skeleton_old(labeled_skeleton,water_mask_tiff):
 
     print('...........Running centerline extraction from skeleton algorithm...........')
 
