@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
 # FUNCTIONS USED IN SKELETONIZATION PROCESS OF BRAIDED RIVERS 
 # (pixel and raster operation functions for skeletonization)
 
@@ -12,6 +9,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import glob
 from sklearn.metrics.pairwise import cosine_similarity
+
+from tqdm import tqdm
 
 # Specifically for skeleton pruning
 from skimage.morphology import skeletonize, binary_dilation, binary_erosion, label, remove_small_holes
@@ -35,19 +34,27 @@ from shapely.ops import linemerge, nearest_points
 # ---------------------------- (HELPER FUNCTIONS) ----------------------------
 # (Functions in order of appearance)
 
+def get_watermask(path):
 
-def get_watermask(water_mask_tiff):
     # Extract water mask data from provided geotiff using rasterio
-
-    #import rasterio
-
-    with rasterio.open(water_mask_tiff) as water_mask:
+    with rasterio.open(path) as water_mask:
         water_mask_data = water_mask.read(1)  # Read the first band (binary mask)
-        # mask_transform = water_mask.transform  # Get the affine transform
-        # mask_crs = water_mask.crs  # Get the CRS (coordinate reference system)
-        # season = 'LF'
 
     return water_mask_data
+
+def export_progress(array, ref_file, export_file):
+    with rasterio.open(ref_file) as src:
+
+        profile = src.profile  # Store metadata
+        data = src.read()  # Read all bands
+
+    # overwrite the data
+    data[0] = array
+
+    # Export the updated data
+    with rasterio.open(export_file, "w", **profile) as dst:
+        dst.write(data)
+
 
 
 def createKernel(radius):
@@ -95,7 +102,7 @@ def find_indirect_neighbors(skeleton):
     return endpoint_candidates
 
 
-def trace_branch_from_endpoint(endpoint,joint_coords,pruned_skeleton):
+def trace_branch_from_endpoint(endpoint, joint_coords, pruned_skeleton):
     # Function to trace branch starting from an endpoint
 
     branch_pixels = [endpoint]
@@ -250,7 +257,7 @@ def prune_branches(skeleton, length_threshold):
             # need to now locate all pixels in this branch and remove them
             branch = trace_branch_from_endpoint(endpoint,joint_coords,pruned_skeleton) #returns branch pixels
             if branch == None:
-                print('No pixels in branch!')
+                # print('No pixels in branch!')
                 continue
             for pixel in branch:
                 pruned_skeleton[pixel] = 0  # Remove branch pixels
@@ -319,7 +326,7 @@ def assign_unique_ids_to_branches(pruned_skeleton, joint_coords, starting_pixel=
 
 
     # Iterate over joints to trace branches between joints
-    for joint in joint_coords:
+    for joint in tqdm(joint_coords, desc="Labeling", leave=False):
         neighbors = [(joint[0] + i, joint[1] + j)
                      for i in [-1, 0, 1] for j in [-1, 0, 1]
                      if not (i == 0 and j == 0)]
@@ -372,7 +379,7 @@ def assign_unique_ids_to_branches(pruned_skeleton, joint_coords, starting_pixel=
     return updated_labeled_segments
 
 
-def order_raster_from_endpoint(subskel,branch):
+def order_raster_from_endpoint(subskel, branch):
     # - Input is a skeleton with exactly one branch, with value =1 on the branch and zeros elsewhere
     # - Traces the branch from the first identified endpoint to the last
     # - returns ordered pixel coordinates in two arrays (x,y)
@@ -380,18 +387,18 @@ def order_raster_from_endpoint(subskel,branch):
 
     endpoints = find_endpoints(subskel)
 
-    if len(np.where(endpoints==1)[0]) > 2:
-        print('Caution! Branch No. '+str(branch)+', greater than 2 endpoints.')
+    # if len(np.where(endpoints==1)[0]) > 2:
+    #     print('Caution! Branch No. '+str(branch)+', greater than 2 endpoints.')
 
 
     # Edge case when less than 2 endpoints are found
     if len(np.where(endpoints==1)[0]) < 2:
-        print('Branch No. '+str(branch)+', less than 2! Skeletonize...')
+        # print('Branch No. '+str(branch)+', less than 2! Skeletonize...')
         subskel = skeletonize(subskel)
         endpoints = find_endpoints(subskel)
 
         if len(np.where(endpoints==1)[0]) < 2:
-            print('Branch No. '+str(branch)+', still less than two endpoints after skeletonization...try alternate route.')
+            # print('Branch No. '+str(branch)+', still less than two endpoints after skeletonization...try alternate route.')
         
             joints, joints_removed = find_joints(subskel)
             endpoint_candidates = find_endpoints(joints_removed)
@@ -421,8 +428,9 @@ def order_raster_from_endpoint(subskel,branch):
             plt.xlim(1620,1630)
             plt.ylim(3150,3200)
             plt.show()
+            plt.close()
 
-            print('Number of endpoints: ',len(np.where(endpoints == 1)[0]))
+            # print('Number of endpoints: ',len(np.where(endpoints == 1)[0]))
 
 
     firstpoint = (np.where(endpoints)[0][0], np.where(endpoints)[1][0]) # y, x
@@ -454,83 +462,49 @@ def get_skeleton(mask_image,pixcdate,figdir,dilate_amount,gauss_amount,season='L
     # OUTPUTS:
     #       - skeleton: binary image of returned skeleton
 
-    print('...........Running get skeleton algorithm...........')
+    # print('...........Running get skeleton algorithm...........')
 
+    bar = tqdm(total=6, desc="Skeletonization", leave=False)
 
-    # LFmonths = [1,2,3,4,5,11,12]
-    # HFmonths = [6,7,8,9,10]
+    # Step 1: buffer water mask to combine small geometries (across dams, bridges, etc)
+    dilated_mask = binary_dilation(mask_image, footprint=createKernel(dilate_amount)) # OG 10
+    return dilated_mask
+    bar.update(1)
 
-    # if int(pixcdate[4:6]) in HFmonths:
-    #     season = 'HF'
-    # if int(pixcdate[4:6]) in LFmonths:
-    #     season = 'LF'
-    
+    # Step 2: Select only the largest connected structure
+    labeled_mask, num_features = label(dilated_mask, return_num=True)
+    component_sizes = np.bincount(labeled_mask.ravel())
 
-    if season == 'LF':
-        # Step 1: buffer water mask to combine small geometries (across dams, bridges, etc)
-        dilated_mask = binary_dilation(mask_image, footprint=createKernel(dilate_amount)) # OG 10
+    # - Ignore background (label 0)
+    component_sizes[0] = 0
 
-        # Step 2: Select only the largest connected structure
-        labeled_mask, num_features = label(dilated_mask, return_num=True)
-        component_sizes = np.bincount(labeled_mask.ravel())
+    # - Find the label of the largest component and select only mask with this label
+    largest_component_mask = (labeled_mask == component_sizes.argmax())
+    bar.update(1)
 
-        # - Ignore background (label 0)
-        component_sizes[0] = 0
+    # Step 3. Perform gaussian smoothing
+    smoothed_mask = gaussian(largest_component_mask.astype(float), sigma=float(gauss_amount)) # OG 20
+    smoothed_mask = smoothed_mask > 0.6  # Adjustable threshold
+    bar.update(1)
 
-        # - Find the label of the largest component and select only mask with this label
-        largest_component_mask = (labeled_mask == component_sizes.argmax())
-
-        # Step 3. Perform gaussian smoothing
-        smoothed_mask = gaussian(largest_component_mask.astype(float), sigma=float(gauss_amount)) # OG 20
-        smoothed_mask = smoothed_mask > 0.6  # Adjustable threshold
-
-        # Step 3.2: Perform secondary dilation
-        if second_dilation == True:
-            dilated_mask2 = binary_dilation(smoothed_mask, footprint=createKernel(dilate_amount)) # OG 10
-        else:
-            dilated_mask2 = smoothed_mask
-
-        # Step 3.1: Select again the largest connected structure
-        labeled_mask, num_features = label(dilated_mask2, return_num=True)
-        component_sizes = np.bincount(labeled_mask.ravel())
-        component_sizes[0] = 0 # Setting largest component (being the background) to zero... need to make this more robust in case background is not connected
-        largest_component_mask_smoothed = (labeled_mask == component_sizes.argmax())
-
-
+    # Step 3.2: Perform secondary dilation
+    if second_dilation == True:
+        dilated_mask2 = binary_dilation(smoothed_mask, footprint=createKernel(dilate_amount)) # OG 10
     else:
-        dilated_mask = binary_dilation(mask_image, footprint=createKernel(dilate_amount)) # OG 10
+        dilated_mask2 = smoothed_mask
+    bar.update(1)
 
-        # Step 2: Select only the largest connected structure
-        labeled_mask, num_features = label(dilated_mask, return_num=True)
-        component_sizes = np.bincount(labeled_mask.ravel())
-
-        # - Ignore background (label 0)
-        component_sizes[0] = 0
-
-        # - Find the label of the largest component and select only mask with this label
-        largest_component_mask = (labeled_mask == component_sizes.argmax())
-
-        # Step 3. Perform gaussian smoothing
-        smoothed_mask = gaussian(largest_component_mask.astype(float), sigma=float(gauss_amount)) # OG 30
-        smoothed_mask = smoothed_mask > 0.6  # Adjustable threshold (OG 0.8)
-
-        # Step 3.2: Perform secondary dilation
-        if second_dilation == True:
-            dilated_mask2 = binary_dilation(smoothed_mask, footprint=createKernel(dilate_amount)) # OG 10
-        else:
-            dilated_mask2 = smoothed_mask
-
-        # Step 3.1: Select again the largest connected structure
-        labeled_mask, num_features = label(dilated_mask2, return_num=True)
-        component_sizes = np.bincount(labeled_mask.ravel())
-        component_sizes[0] = 0 # Setting largest component (being the background) to zero... need to make this more robust in case background is not connected
-        largest_component_mask_smoothed = (labeled_mask == component_sizes.argmax())
-
-
+    # Step 3.1: Select again the largest connected structure
+    labeled_mask, num_features = label(dilated_mask2, return_num=True)
+    component_sizes = np.bincount(labeled_mask.ravel())
+    component_sizes[0] = 0 # Setting largest component (being the background) to zero... need to make this more robust in case background is not connected
+    largest_component_mask_smoothed = (labeled_mask == component_sizes.argmax())
+    bar.update(1)
 
     # Step 4. Perform skeletonization
     # With gaussian smoothing:
     skeleton = skeletonize(largest_component_mask_smoothed)
+    bar.update(1)
 
     if savePlot == True:
         # Step 5. Find endpoints
@@ -606,8 +580,9 @@ def get_pruned_skeleton(skeleton,mask_image,pixcdate,figdir,distance_threshold=3
     5. Plot results
 
     """
-    print('...........Running branch pruning algorithm...........')
+    # print('...........Running branch pruning algorithm...........')
 
+    bar = tqdm(total=8, desc="Pruning", leave=False)
 
     # display results
     fig, axes = plt.subplots(nrows=1, ncols=6, figsize=(16, 4), sharex=True, sharey=True)
@@ -622,10 +597,12 @@ def get_pruned_skeleton(skeleton,mask_image,pixcdate,figdir,distance_threshold=3
     # Connect close endpoints
     # pixels (1 pixel = 10 m)
     connected_skeleton = connect_close_endpoints(skeleton, distance_threshold)
+    bar.update(1)
 
     # Compute joints and endpoints for plotting
     endpoints = find_endpoints(connected_skeleton)
     joints, joints_removed_mask = find_joints(connected_skeleton)
+    bar.update(1)
 
 
     ax[1].imshow(np.zeros_like(skeleton), cmap='gray')
@@ -641,13 +618,16 @@ def get_pruned_skeleton(skeleton,mask_image,pixcdate,figdir,distance_threshold=3
 
     #Fill small holes
     filled_skeleton = fill_small_holes(connected_skeleton, max_hole_size) # hole size is radius in pixels
+    bar.update(1)
 
     # skeletonize again
     skeleton2 = skeletonize(filled_skeleton)
+    bar.update(1)
 
     # Compute joints and endpoints for plotting
     endpoints = find_endpoints(skeleton2)
     joints, joints_removed_mask = find_joints(skeleton2)
+    bar.update(1)
 
 
     ax[2].imshow(np.zeros_like(skeleton), cmap='gray')
@@ -673,6 +653,7 @@ def get_pruned_skeleton(skeleton,mask_image,pixcdate,figdir,distance_threshold=3
     pruned_skeleton = prune_branches(skeleton2, prunethresh)
     pruned_skeleton = skeletonize(pruned_skeleton)
     endpoints_len_new = float('inf')
+    bar.update(1)
     i = 0
     while True:
         endpoints = find_endpoints(pruned_skeleton)
@@ -683,15 +664,15 @@ def get_pruned_skeleton(skeleton,mask_image,pixcdate,figdir,distance_threshold=3
             final_skeleton = skeletonize(pruned_skeleton) # get rid of areas with 2 pixels width
             break
         
-        print('Running prune branches...')
+        # print('Running prune branches...')
         pruned_skeleton = prune_branches(pruned_skeleton, prunethresh) # APPLY pruning algorithm
         i +=1
         # Compute length of endpoints
         y, x = np.where(endpoints == 1) 
         endpoints_len_new = len(x)
 
-    print('Pruning algorithm applied '+str(i)+' times!')
-
+    # print('Pruning algorithm applied '+str(i)+' times!')
+    bar.update(1)
 
     ax[4].imshow(np.zeros_like(skeleton), cmap='gray')
     y, x = np.where(skeleton2 == 1)
@@ -717,7 +698,8 @@ def get_pruned_skeleton(skeleton,mask_image,pixcdate,figdir,distance_threshold=3
 
     fig.tight_layout()
     plt.savefig(figdir+'/'+pixcdate+'prunedSkeleton.png')
-    #plt.close()
+    plt.close()
+    bar.update(1)
 
 
     return final_skeleton
@@ -725,7 +707,8 @@ def get_pruned_skeleton(skeleton,mask_image,pixcdate,figdir,distance_threshold=3
 
 def get_labeled_skeleton(final_skeleton,pixcdate,figdir,savePlot=False):
 
-    print('...........Running skeleton labeling algorithm...........')
+    # print('...........Running skeleton labeling algorithm...........')
+    
 
     # Now, set ID values to each channel....
     endpoints = find_endpoints(final_skeleton)
@@ -794,7 +777,7 @@ def find_nearest_branch(subskel,labeled_skeleton):
     # subsket is a skeleton with less only 1 pixel
     # labeled_skeleton is the original skeleton with branch IDs
     # returns the nearest branch ID to the subskel
-    print('Finding nearest branch to branch with less than 1 pixel...')
+    # print('Finding nearest branch to branch with less than 1 pixel...')
     y,x = np.where(subskel > 0)
     y = y[0]
     x = x[0]
@@ -806,19 +789,19 @@ def find_nearest_branch(subskel,labeled_skeleton):
     distances = np.where(distances == 0, np.inf, distances)
     nearest_branch = np.argmin(distances)
 
-    print('nearest branch: ',labeled_skeleton[y2[nearest_branch]][x2[nearest_branch]])
+    # print('nearest branch: ',labeled_skeleton[y2[nearest_branch]][x2[nearest_branch]])
     return labeled_skeleton[y2[nearest_branch]][x2[nearest_branch]]
 
 
 
 def extract_cl_from_skeleton(labeled_skeleton,water_mask_tiff):
 
-    print('...........Running centerline extraction from skeleton algorithm...........')
+    # print('...........Running centerline extraction from skeleton algorithm...........')
 
     line_data = []
     skipped_branches = []
-    for branch in np.unique(labeled_skeleton):
-        print('Processing branch No. '+str(branch)+'...')
+    for branch in tqdm(np.unique(labeled_skeleton), desc='Vectorizing product',  leave=False):
+        # print('Processing branch No. '+str(branch)+'...')
         if branch == 0:
             continue
 
@@ -827,7 +810,7 @@ def extract_cl_from_skeleton(labeled_skeleton,water_mask_tiff):
         subskel[labeled_skeleton == branch] =  1
         # if subskeleton has less than 1 pixels, store the branch ID and append that pixel to nearest branch outside of the branch loop
         if len(np.where(subskel > 0)[0]) == 1:
-            print('Branch No. '+str(branch)+', has only than 1 pixel! Skipping and merging later...')
+            # print('Branch No. '+str(branch)+', has only than 1 pixel! Skipping and merging later...')
             skipped_branches.append(branch)
             continue
 
@@ -841,8 +824,8 @@ def extract_cl_from_skeleton(labeled_skeleton,water_mask_tiff):
         line_data.append({'branch_id': branch, 'geometry': line})
 
     # go through skipped branches, and append to nearest branch
-    for branch in skipped_branches:
-        print('Merging pixels in branch No. '+str(branch)+' to nearest branch...')
+    for branch in tqdm(skipped_branches, desc='Vectorizing skipped branches',  leave=False):
+        # print('Merging pixels in branch No. '+str(branch)+' to nearest branch...')
         # extract subskeleton
         subskel = np.zeros_like(labeled_skeleton)
         subskel[labeled_skeleton == branch] =  1
@@ -874,7 +857,7 @@ def extract_cl_from_skeleton(labeled_skeleton,water_mask_tiff):
 
 def extract_cl_from_skeleton_old(labeled_skeleton,water_mask_tiff):
 
-    print('...........Running centerline extraction from skeleton algorithm...........')
+    # print('...........Running centerline extraction from skeleton algorithm...........')
 
     line_data = []
     for branch in np.unique(labeled_skeleton):
@@ -1035,7 +1018,7 @@ def plot_merged(cl_merged, maskdate,figdir):
 
     # Ensure GeoDataFrame is in a projected CRS for accurate placement
     if not cl_merged.crs.is_projected:
-        print("Reprojecting to UTM for better plotting.")
+        # print("Reprojecting to UTM for better plotting.")
         cl_merged = cl_merged.to_crs('EPSG:3857')  # Example of a projected CRS
 
     # Create a color map for branch IDs

@@ -176,3 +176,15 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# pixi environments
+.pixi
+*.egg-info
+
+# project specific folders
+data/*
+
+# temporary likely change when publishing
+.gitattributes
+pixi.toml
+pixi.lock
