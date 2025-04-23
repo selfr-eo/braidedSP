@@ -1,24 +1,11 @@
-# ------------------------------ Imports ------------------------------
-import os
 import glob
 import sys
-
+import os
 from tqdm import tqdm
 
-import numpy as np
-import pandas as pd
 import geopandas as gpd
-import matplotlib.pyplot as plt
 
-# Computing slopes
-from sklearn.linear_model import LinearRegression
-from shapely.geometry import LineString
-from skimage.filters import gaussian
-
-# import custom functions
-import procBraided as pc
-import skeletonize_func as skel
-
+from braided import Mask
 
 # ------------------------------ Paths ------------------------------
 # hard code paths for now / later add in as system or function arguments ?
@@ -29,77 +16,45 @@ if len(mask_paths) == 0:
 
 # set up export dirs
 odir = r"../data/odir/"
-if not os.path.exists(odir):
-    os.makedirs(odir)
 
-figdir = r"../data/odir/figs/"
-if not os.path.exists(figdir):
-    os.makedirs(figdir)
-
-
-# ------------------------------ Parameters ------------------------------
-hemi = "north"
-dilate = 1 #pixels S2 res, so in 10 meters
-gauss = 5
-fill_hole_size = 0 # 0 means no hole filling
-
+# read shapefile for starting line
+river_bounds = gpd.read_file(r"C:\Users\cwch\Projects\eo4flood\Niger_Hydrodynamic\local_data\niger_braided_channel_test\niger_river_braided_channel_test.shp")
+river_bounds = river_bounds.loc[0, 'geometry']
 
 # ------------------------------ Main ------------------------------
 # generate the centerlines for each mask file
 for file in tqdm(mask_paths, desc="Processing masks"):
 
-    ##### hardcoded date format to remove
-    maskdate = os.path.basename(file)[24:28]
-    pixcdate = (
-        "2021" + maskdate[0:2] + "01"
-    )  # format expected by the function is YYYYMMDD
+    # extract infor based on known file structure
+    identifier = file.split('S2_Niger_WaterMask_')[-1].split('.tif')[0]
 
-    # reads the watermask geotiff
-    water_mask = skel.get_watermask(file)
+    params={
+        'dilate': 1,
+        'gauss' : 0.5,
+        'fill_hole_size' : 100
+    }
+    identifier = f"{identifier}_dil{params['dilate']}_gauss{params['gauss']}_fill_{params['fill_hole_size']}"
 
-
-    # gets initial skeleton
-    skeleton = skel.get_skeleton(
-        water_mask,
-        pixcdate,
-        figdir,
-        dilate,
-        gauss,
-        season="HF",
-        second_dilation=False,
-        savePlot=False,
+    mask = Mask(file, odir, identifier)    
+    mask.process(
+        dilate = params['dilate'], #pixels S2 res, so in 10 meters
+        gauss = params['gauss'], # standard deviation of gaussian filter
+        fill_hole_size = params['fill_hole_size'], # 0 means no hole filling
+        river_bounds=river_bounds, # a shapely object in the same crs as the tiff files
     )
+    mask.export(os.path.join(odir, f"{identifier}_cl_labeled.geojson"))
 
-    # copy raster for exporting process updates
-    skel.export_progress(skeleton, file, os.path.join(odir, maskdate + f"_dilate_{dilate}.tif"))
-    #skel.export_progress(skeleton, file, os.path.join(odir, maskdate + f"_gauss_{gauss}.tif"))
+    ## TODO Move to mask functions in main package
+    # adjust the trimmed centerline to get conencted and labeled joints
+    import skeletonize_func as skel
 
-    # prunes skeleton to ensure each reach has an inflow and outflow, also closes holes
-    pruned_skeleton = skel.get_pruned_skeleton(
-        skeleton,
-        water_mask,
-        pixcdate,
-        figdir,
-        distance_threshold=5,
-        max_hole_size=fill_hole_size,
-        prunethresh=600,
-    )  # distance thresh for connecting pixels
+    # read in originally processed centerline
+    cl = gpd.read_file(rf"C:\Users\cwch\Tools\braided_rivers\data\odir\{identifier}_cl_labeled.geojson")
+    cl = skel.trim_cl_to_river_bounds(cl, river_bounds)
 
-    # labels the reaches from top to bottom (improvements can be made here by letting user provide a starting point)
-    labeled_skeleton = skel.get_labeled_skeleton(
-        pruned_skeleton, pixcdate, figdir, savePlot=True
-    )
+    starting_line = gpd.read_file(r"C:\Users\cwch\Tools\braided_rivers\data\starting_line.shp")
+    main_centerline = gpd.read_file(r"C:\Users\cwch\Tools\braided_rivers\data\main_centerline.shp")
+    main_centerline = skel.trim_cl_to_river_bounds(main_centerline, river_bounds)
 
-    # take the results of processing the skeleton and generate centerlines
-    cl = skel.extract_cl_from_skeleton(labeled_skeleton, file)
-    # cl = skel.merge_short_centerlines(cl, hemi) # options to merge short centerlines into a longer stretch
-
-    # skel.plot_merged(cl, maskdate, figdir)
-
-    # print("SUCCESSFUL SKELETON! Saving files...")
-    # save processed shape 
-    cl.to_file(
-        odir + "/" + maskdate + "_fs_" + str(fill_hole_size) + f"_generated_cl_{dilate}_{gauss}_{fill_hole_size}.geojson"
-    )
-
-    sys.exit()
+    cl = skel.join_cl_at_joints(cl, starting_line, main_centerline, search_dist=40)
+    cl.to_file(rf"C:\Users\cwch\Tools\braided_rivers\data\odir\{identifier}_cl_updated.geojson")
