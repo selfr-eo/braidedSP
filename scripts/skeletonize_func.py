@@ -230,6 +230,8 @@ def extract_cl_from_skeleton(labeled_skeleton,water_mask_tiff):
 
         # order raster from endpoint
         pixel_coords_x, pixel_coords_y = tools.order_raster_from_endpoint(subskel,branch)
+        if pixel_coords_x is None:
+            continue
 
         # Convert ordered pixel coordinates to lat lon
         line = tools.pixel_coordinates2latlonline(water_mask_tiff,pixel_coords_y,pixel_coords_x,branch,reverse=True)
@@ -452,18 +454,20 @@ def trim_cl_to_river_bounds(cl, river_bounds):
 
 from shapely.ops import polygonize, unary_union, linemerge
 from shapely import MultiPolygon, MultiPoint, concave_hull
+import time
 
 def join_cl_at_joints(cl, starting_line, main_centerline, search_dist=20):
 
     """Reaches are seperated due to the processing of pixels and selecting their center coordinates. we join them here and also keep track of which reach each reach flows into"""
 
     # fist convert centerline to local coordinates
-    orig_crs = cl.crs
     local_crs = cl.estimate_utm_crs()
     cl = cl.to_crs(local_crs)
     starting_line = starting_line.to_crs(local_crs)
     main_centerline = main_centerline.to_crs(local_crs)
-    main_centerline = linemerge(main_centerline.unary_union)
+    # main_centerline = linemerge(main_centerline.unary_union)
+    main_centerline = main_centerline.geometry[0]
+
 
     # see if we need to reverse coordinates in main centerline
     main_centerline_endpoints = main_centerline.coords[0], main_centerline.coords[-1]
@@ -556,9 +560,6 @@ def join_cl_at_joints(cl, starting_line, main_centerline, search_dist=20):
 
         # update in place
         cl.loc[i, 'geometry'] = LineString(coords)
-
-
-
 
 
     return cl

@@ -9,16 +9,16 @@ from braided import Mask
 
 # ------------------------------ Paths ------------------------------
 # hard code paths for now / later add in as system or function arguments ?
-maskdir = r"../data/watermasks"  # or later just have use provide paths to mask
+maskdir = r"\\dkcph1-nas02\jupyterhub-exchange\connorchewning\data\eo4flood\Niger_Hydrodynamic\niger_river_centerline_processing\watermasks"  # or later just have use provide paths to mask
 mask_paths = glob.glob(os.path.join(maskdir, "*.tif"))
 if len(mask_paths) == 0:
     raise ValueError("No mask files found in mask directory")
 
 # set up export dirs
-odir = r"../data/odir/"
+odir = r"\\dkcph1-nas02\jupyterhub-exchange\connorchewning\data\eo4flood\Niger_Hydrodynamic\niger_river_centerline_processing\odir"
 
 # read shapefile for starting line
-river_bounds = gpd.read_file(r"C:\Users\cwch\Projects\eo4flood\Niger_Hydrodynamic\local_data\niger_braided_channel_test\niger_river_braided_channel_test.shp")
+river_bounds = gpd.read_file(r"C:\Users\cwch\CNR\EO4FLOOD-grp - Niger\08_Models\Hydraulic model\DHI\Niger_AOI_DHI1D.shp")
 river_bounds = river_bounds.loc[0, 'geometry']
 
 # ------------------------------ Main ------------------------------
@@ -29,9 +29,9 @@ for file in tqdm(mask_paths, desc="Processing masks"):
     identifier = file.split('S2_Niger_WaterMask_')[-1].split('.tif')[0]
 
     params={
-        'dilate': 1,
+        'dilate': 2,
         'gauss' : 0.5,
-        'fill_hole_size' : 100
+        'fill_hole_size' : 1000
     }
     identifier = f"{identifier}_dil{params['dilate']}_gauss{params['gauss']}_fill_{params['fill_hole_size']}"
 
@@ -41,6 +41,7 @@ for file in tqdm(mask_paths, desc="Processing masks"):
         gauss = params['gauss'], # standard deviation of gaussian filter
         fill_hole_size = params['fill_hole_size'], # 0 means no hole filling
         river_bounds=river_bounds, # a shapely object in the same crs as the tiff files
+        save_progress=True
     )
     mask.export(os.path.join(odir, f"{identifier}_cl_labeled.geojson"))
 

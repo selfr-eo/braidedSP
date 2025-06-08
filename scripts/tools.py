@@ -384,6 +384,8 @@ def order_raster_from_endpoint(subskel, branch):
         subskel = skeletonize(subskel)
         endpoints = find_endpoints(subskel)
 
+
+
         if len(np.where(endpoints==1)[0]) < 2:
             # print('Branch No. '+str(branch)+', still less than two endpoints after skeletonization...try alternate route.')
         
@@ -401,21 +403,23 @@ def order_raster_from_endpoint(subskel, branch):
             ep2y,ep2x = np.where(endpoint_candidates == 1)
 
             # Set second endpoint 
+            if np.shape(ep2y) == 0:
+                return None, None # we are dealing with a loop at the beginning or end of the process, return none for now... TODO: will need to sort this out...
             endpoints[ep2y[0]][ep2x[0]] = 1
 
             # Remove other endpoint candidate from skeleton
             subskel[ep2y[1]][ep2x[1]] = 0
 
-            plt.figure()
-            plt.imshow(subskel)
-            y,x = np.where(endpoint_candidates == 1)
-            plt.scatter(x, y, color='red', s=0.5)
-            y, x = np.where(endpoints == 1)
-            plt.scatter(x, y, color='blue', s=0.5) 
-            plt.xlim(1620,1630)
-            plt.ylim(3150,3200)
-            #plt.show()
-            plt.close()
+            # plt.figure()
+            # plt.imshow(subskel)
+            # y,x = np.where(endpoint_candidates == 1)
+            # plt.scatter(x, y, color='red', s=0.5)
+            # y, x = np.where(endpoints == 1)
+            # plt.scatter(x, y, color='blue', s=0.5) 
+            # plt.xlim(1620,1630)
+            # plt.ylim(3150,3200)
+            # #plt.show()
+            # plt.close()
 
             # print('Number of endpoints: ',len(np.where(endpoints == 1)[0]))
 
