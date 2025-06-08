@@ -30,7 +30,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 from shapely import centroid
 from shapely.ops import linemerge, nearest_points
 
-import tools
+import braided_rivers.tools as tools
 
 def export_progress(array, ref_file, export_file):
     with rasterio.open(ref_file) as src:

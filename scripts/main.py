@@ -5,7 +5,7 @@ from tqdm import tqdm
 
 import geopandas as gpd
 
-from braided import Mask
+from braided_rivers.braided import Mask
 
 # ------------------------------ Paths ------------------------------
 # hard code paths for now / later add in as system or function arguments ?

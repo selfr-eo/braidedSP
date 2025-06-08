@@ -5,7 +5,7 @@ from tqdm import tqdm
 
 import geopandas as gpd
 
-from braided import Mask
+from braided_rivers.braided import Mask
 
 """Script assumes that masksa are part of single river system and that parameters for processing are provided within the shape files
 """
