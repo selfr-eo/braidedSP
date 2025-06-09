@@ -5,7 +5,7 @@ from tqdm import tqdm
 
 import geopandas as gpd
 
-from braided_rivers.braided import Mask
+from braidedSP.mask import Mask
 import skeletonize_func as skel
 
 # ------------------------------ Paths ------------------------------

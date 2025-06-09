@@ -1,30 +1,20 @@
 # Import libraries
-import os
 import pandas as pd
 import geopandas as gpd
 from shapely.geometry import Point, LineString, MultiLineString
 import numpy as np
-import matplotlib.pyplot as plt
-import glob
-from sklearn.metrics.pairwise import cosine_similarity
 
 from tqdm import tqdm
 
 # Specifically for skeleton pruning
-from skimage.morphology import skeletonize, binary_dilation, binary_erosion, label, remove_small_holes
-from skimage.filters import gaussian
+from skimage.morphology import skeletonize, label, remove_small_holes
 from scipy.signal import convolve2d
 from scipy.spatial import cKDTree
-import sys
-sys.path.append("/Volumes/OneTouch/work/scripts")
-import procBraided as pc
 
 # Importing centerlines and converting between image coordinates and lat lon
 import rasterio
 
 # For merging and selecting centerline channels
-from sklearn.metrics.pairwise import cosine_similarity
-from shapely import centroid
 from shapely.ops import linemerge, nearest_points
 
 
@@ -179,7 +169,7 @@ def pixel_coordinates2latlonline(geotiff_path, pixel_y, pixel_x,branch_id,revers
 
     if len(points) > 1:  # Only create LineString if there are at least two points
         line = LineString(points)
-        if reverse == True:
+        if reverse:
             line = LineString(line.coords[::-1])
     if len(points) <= 1:
         raise ValueError("1 or less points in branch No. {}".format(str(branch_id)))
@@ -243,7 +233,7 @@ def prune_branches(skeleton, length_threshold):
         if branchlen < length_threshold:
             # need to now locate all pixels in this branch and remove them
             branch = trace_branch_from_endpoint(endpoint,joint_coords,pruned_skeleton) #returns branch pixels
-            if branch == None:
+            if branch is None:
                 # print('No pixels in branch!')
                 continue
             for pixel in branch:
