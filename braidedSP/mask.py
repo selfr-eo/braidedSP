@@ -12,7 +12,8 @@ import geopandas as gpd
 import rasterio
 from skimage.filters import gaussian
 from skimage.morphology import skeletonize, binary_dilation, binary_erosion, remove_small_holes
-from braidedSP import tools
+#from braidedSP import tools
+import tools
 
 @dataclass
 class Mask:
