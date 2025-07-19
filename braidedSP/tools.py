@@ -564,3 +564,11 @@ def add_line_geom(start, end):
     points = list(zip(y_values, x_values))
     line = LineString(points)
     return line
+
+## tools used primarily in 
+def create_points(row, point_separation):
+    # Can be used for many different linestrings!
+    geom = row.geometry
+    #For each geometry, create a point along it for each distance in the range from 0 to line length, with an interval
+    point_list = [geom.interpolate(distance=x) for x in np.arange(start=0, stop=geom.length, step=point_separation)]
+    return point_list

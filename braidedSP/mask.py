@@ -7,11 +7,13 @@ from tqdm import tqdm
 
 # functional imports
 from datetime import datetime
-import numpy as np
-import geopandas as gpd
 import rasterio
 from skimage.filters import gaussian
-from skimage.morphology import skeletonize, binary_dilation, binary_erosion, remove_small_holes
+from skimage.morphology import skeletonize, binary_dilation, binary_erosion, remove_small_holes, label
+
+import numpy as np
+import geopandas as gpd
+
 from braidedSP import tools
 #import tools
 
@@ -40,10 +42,11 @@ class Mask:
             os.makedirs(self.figdir)
 
         # read in the file to memory
-        self.array, self.ref_data, self.crs, self.profile = _get_watermask(self.path)
+        self.array, self.ref_data, self.crs, self.profile, self.transform = _get_watermask(self.path)
 
         self.smoothed = None
         self.skeleton = None # this must be processed before it is set
+        self.extraction_mask = None
 
     def get_date(self):
         return self.date.strftime("%Y-%m-%d")
@@ -167,7 +170,16 @@ class Mask:
             ref_data[0] = array
             dst.write(ref_data)
 
+    def process_extraction_mask(self, dilate=5):
+        # Smooth original water mask to extract swot data
 
+        dilated_mask = binary_dilation(self.array, footprint=tools.createKernel(dilate))
+        labeled_mask, num_features = label(dilated_mask, return_num=True)
+        component_sizes = np.bincount(labeled_mask.ravel())
+        component_sizes[0] = 0
+        largest_component_mask = (labeled_mask == component_sizes.argmax())
+
+        self.extraction_mask = largest_component_mask
 
 
 
@@ -181,8 +193,9 @@ def _get_watermask(path):
         ref_data = src.read()
         crs = src.crs
         profile = src.profile
+        transform = src.transform 
 
-    return water_mask_data, ref_data, crs, profile
+    return water_mask_data, ref_data, crs, profile, transform
 
 
 
@@ -335,3 +348,5 @@ def _find_nearest_branch(subskel,labeled_skeleton):
 
     # print('nearest branch: ',labeled_skeleton[y2[nearest_branch]][x2[nearest_branch]])
     return labeled_skeleton[y2[nearest_branch]][x2[nearest_branch]]
+
+

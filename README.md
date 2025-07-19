@@ -1,7 +1,5 @@
 ![BraidedSP](images/braidedsp.png)
 
-# Braided Rivers SP
-
 This packages holds the tools and code for reproducing the figures and analysis presented within the paper [Franze et al. 2025](link_to_DOI). It has been structured in a way that it should be easy to add your own data and process similar results for a river of your choosing.
 
 ## Cite braidedSP

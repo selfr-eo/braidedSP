@@ -3,14 +3,15 @@ import os
 from dataclasses import dataclass
 from datetime import datetime
 
+# import project specific objects
+from braidedSP.mask import Mask
+from braidedSP.centerline import Centerline
+from braidedSP.swot import SWOT
+
 # general imports
 from tqdm import tqdm
 import pandas as pd
 import geopandas as gpd
-
-# import project specific objects
-from braidedSP.mask import Mask
-from braidedSP.centerline import Centerline
 
 
 @dataclass
@@ -24,6 +25,7 @@ class River:
 
         self.masks = []
         self.centerlines = []
+        self.swot_obs = []
 
     def add_mask(self, mask_path:str, date:datetime):
 
@@ -87,9 +89,38 @@ class River:
         for cl in self.centerlines:
             cl.gdf = cl.join_cl_at_joints(**kwargs)
 
-
     def export_centerlines(self, file_type='geojson'):
 
         for cl in self.centerlines:
             path = os.path.join(self.outdir, f"centerlines_{cl.river_name}_{cl.date.strftime('%Y-%m-%d')}.{file_type}")
             cl.gdf.to_file(path)
+
+    def add_swot(self, swot_path:str, date:datetime):
+
+        swot = SWOT(
+            river_name = self.name,
+            date = date,
+            path = swot_path,
+            odir = self.outdir,
+        )
+
+        self.swot_obs.append(swot)
+
+    def process_swot(self, dilate=5, engine='h5netcdf'):
+
+        for i in range(len(self.masks)):
+
+            # process the extraction mask for each mask
+            self.masks[i].process_extraction_mask(dilate=dilate)
+
+            # read in swot data and trim to extraction mask
+            extraction_mask = self.masks[i].extraction_mask
+            mask_transform = self.masks[i].transform
+            mask_crs = self.masks[i].crs
+            self.swot_obs[i].load_pixc(extraction_mask, mask_transform, mask_crs, engine=engine)
+
+
+    def extract_water_levels(self):
+
+        pass
+        
