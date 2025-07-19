@@ -1,4 +1,4 @@
-![BraidedSP]('./images/braidedsp.png')
+![BraidedSP](images/braidedsp.png)
 
 # Braided Rivers SP
 
