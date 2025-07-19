@@ -12,8 +12,8 @@ import geopandas as gpd
 import rasterio
 from skimage.filters import gaussian
 from skimage.morphology import skeletonize, binary_dilation, binary_erosion, remove_small_holes
-#from braidedSP import tools
-import tools
+from braidedSP import tools
+#import tools
 
 @dataclass
 class Mask:
@@ -51,20 +51,24 @@ class Mask:
     def process(
         self,
         dilate=10,
+        erode=10,
         gauss=0.5,
-        fill_hole_size=100,
+        gauss_thresh=0.6,
         second_dilation=False,
+        fill_hole_size=100,
         distance_threshold=5,
         prune_thresh=600,
         show_progress=False,
         save_progress=False
-    ):
+        ):
         
         # smooth the mask
         self.smoothed = _smooth(
-            self.array,
-            dilate,
-            gauss,
+            mask_image=self.array, 
+            dilate_amount=dilate, 
+            erode_amount=erode, 
+            gauss_amount=gauss, 
+            gauss_thresh=gauss_thresh,
             max_hole_size = fill_hole_size,
             second_dilation=second_dilation,
             show_progress=show_progress
@@ -182,7 +186,7 @@ def _get_watermask(path):
 
 
 
-def _smooth(mask_image, dilate_amount, gauss_amount, gauss_thresh=0.6, max_hole_size=300, second_dilation=True, show_progress=False):
+def _smooth(mask_image, dilate_amount, erode_amount, gauss_amount, gauss_thresh=0.6, max_hole_size=300, second_dilation=True, show_progress=False):
     """Function for extracting the initial skeleton from binary raster image
     # INPUTS:
     #       - mask_image: binary raster image of water (1s) and not water (0s)
@@ -202,9 +206,11 @@ def _smooth(mask_image, dilate_amount, gauss_amount, gauss_thresh=0.6, max_hole_
     bar.update(1)
     if dilate_amount > 0:
         dilated_mask = binary_dilation(mask_image, footprint=tools.createKernel(dilate_amount)) # OG 10
-        dilated_mask = binary_erosion(dilated_mask, footprint=tools.createKernel(dilate_amount)) # erode by same amount
     else:
-        dilated_mask = mask_image    
+        dilated_mask = mask_image
+    if erode_amount > 0:
+        dilated_mask = binary_erosion(dilated_mask, footprint=tools.createKernel(erode_amount)) # erode by same amount
+
     
     # Step 2: Select only the largest connected structure
     bar.update(1)
@@ -223,7 +229,8 @@ def _smooth(mask_image, dilate_amount, gauss_amount, gauss_thresh=0.6, max_hole_
     bar.update(1)
     if second_dilation:
         smoothed_mask = binary_dilation(smoothed_mask, footprint=tools.createKernel(dilate_amount)) # OG 10
-        smoothed_mask = binary_erosion(smoothed_mask, footprint=tools.createKernel(dilate_amount)) # erode by same amount
+        if erode_amount > 0:
+            smoothed_mask = binary_erosion(smoothed_mask, footprint=tools.createKernel(erode_amount)) # erode by same amount
     
     # Step 5: Select again the largest connected structure
     bar.update(1)

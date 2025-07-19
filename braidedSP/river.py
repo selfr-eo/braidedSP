@@ -1,9 +1,11 @@
 # Typing imports
+import os
 from dataclasses import dataclass
 from datetime import datetime
 
 # general imports
 from tqdm import tqdm
+import pandas as pd
 import geopandas as gpd
 
 # import project specific objects
@@ -41,9 +43,14 @@ class River:
         if 'show_progress' in kwargs:
             show_progress = kwargs['show_progress']
 
+        # see if we get multiple dictionaries as input
+        if type(kwargs) is dict():
+            kwargs = [kwargs] * len(self.masks)
+
+
         # cycle through and process masks
-        for mask in tqdm(self.masks, desc='Processing masks', leave=True, disable=not show_progress):
-            mask.process(**kwargs)
+        for mask, mask_args in tqdm(zip(self.masks, kwargs), desc='Processing masks', leave=True, disable=not show_progress):
+            mask.process(**mask_args)
 
     def generate_centerlines(self, kwargs):
 
@@ -79,3 +86,10 @@ class River:
 
         for cl in self.centerlines:
             cl.gdf = cl.join_cl_at_joints(**kwargs)
+
+
+    def export_centerlines(self, file_type='geojson'):
+
+        for cl in self.centerlines:
+            path = os.path.join(self.outdir, f"centerlines_{cl.river_name}_{cl.date.strftime('%Y-%m-%d')}.{file_type}")
+            cl.gdf.to_file(path)
