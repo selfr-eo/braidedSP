@@ -188,3 +188,6 @@ data/*
 .gitattributes
 pixi.toml
 pixi.lock
+# pixi environments
+.pixi
+*.egg-info

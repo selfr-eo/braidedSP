@@ -1,0 +1,36 @@
+[project]
+authors = [{name = "connorchewning", email = "62517413+connorchewning@users.noreply.github.com"}]
+dependencies = []
+name = "braided_rivers"
+requires-python = ">= 3.9"
+version = "0.1.0"
+
+[build-system]
+build-backend = "hatchling.build"
+requires = ["hatchling"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["./braidedSP"]
+
+[tool.pixi.project]
+channels = ["conda-forge"]
+platforms = ["win-64"]
+
+[tool.pixi.dependencies]
+python = "==3.9"
+rasterio = ">=1.3.6,<2"
+geopandas = ">=0.14.4,<0.15"
+matplotlib = ">=3.9.1,<4"
+scikit-learn = ">=1.6.1,<2"
+scikit-image = ">=0.24.0,<0.25"
+scipy = ">=1.13.1,<2"
+ipykernel = ">=6.29.5,<7"
+xarray = ">=2024.7.0,<2025"
+tqdm = ">=4.67.1,<5"
+ruff = ">=0.10.0,<0.11"
+contextily = ">=1.6.2,<2"
+
+[tool.pixi.pypi-dependencies]
+braided_rivers = { path = ".", editable = true }
+
+[tool.pixi.tasks]
