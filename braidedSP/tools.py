@@ -2,6 +2,7 @@
 import pandas as pd
 import geopandas as gpd
 from shapely.geometry import Point, LineString, MultiLineString
+from shapely import buffer
 import numpy as np
 
 from tqdm import tqdm
@@ -565,10 +566,47 @@ def add_line_geom(start, end):
     line = LineString(points)
     return line
 
-## tools used primarily in 
+# --------------------------------------------------------------------------------------------------------------------
+## tools used primarily in SWOT processing
 def create_points(row, point_separation):
-    # Can be used for many different linestrings!
+
     geom = row.geometry
     #For each geometry, create a point along it for each distance in the range from 0 to line length, with an interval
     point_list = [geom.interpolate(distance=x) for x in np.arange(start=0, stop=geom.length, step=point_separation)]
     return point_list
+
+def trim_to_one_channel(sel_cl_gdf, swot_gdf, buffer_width=1000):
+
+    # Buffer around channel (= 1000 unless known riv width passed in)
+    buffer_geom = buffer(sel_cl_gdf.geometry.unary_union, buffer_width)
+
+    # Trim SWOT PIXC to buffer
+    clipped_gdf = gpd.clip(swot_gdf, buffer_geom)
+    clipped_gdf = clipped_gdf.copy()
+
+    if len(clipped_gdf) > 0:
+
+        # project SWOT PIXC to channel centerline
+        clipped_gdf['dist'] = projectToCenterline(sel_cl_gdf, clipped_gdf[['geometry']])
+        clipped_gdf['channelID'] = int(sel_cl_gdf.branch_id)
+
+    return clipped_gdf
+
+def projectToCenterline(gdf_cl, gdf_dat):
+
+    # ensure data in the local crs of the centerline
+    centerline_crs = gdf_cl.estimate_utm_crs()
+    
+    # Extract points
+    dat = gdf_dat.to_crs(centerline_crs).get_coordinates()
+    cl = gdf_cl.get_coordinates()
+
+    line = LineString(cl)
+    dat['point_geom'] = dat.apply(lambda row: Point(row['x'], row['y']), axis=1)
+    dist = dat['point_geom'].apply(line.project)
+    return dist 
+
+def calculate_vector_general(coord1, coord2):
+    # Calculate the direction vector for a LineString at the given endpoint.
+    vec = np.array(coord2) - np.array(coord1)
+    return vec / np.linalg.norm(vec)  # Normalize

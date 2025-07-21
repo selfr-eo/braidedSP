@@ -6,10 +6,14 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 import geopandas as gpd
+from shapely.geometry import MultiPoint, LineString, Point, shape
+import shapely
 import xarray as xr
+from osgeo import gdal # import before rasterio
 import rasterio
 from rasterio.transform import rowcol
 
+from braidedSP import tools
 
 @dataclass
 class SWOT:
@@ -87,11 +91,6 @@ def _trim2mask_general(pixc_gdf, extraction_mask, mask_transform, mask_crs):
     # - Function to trim pixel cloud data to a binary mask (numpy array of 1s and 0s)
     # - Water mask generated from S2 optical imagery and imported as a geotiff
 
-    # Open the GeoTIFF file
-    # with rasterio.open(mask_tiff_filename) as water_mask:
-    #     mask_transform = water_mask.transform  # Get the affine transform
-    #     mask_crs = water_mask.crs  # Get the CRS (coordinate reference system)
-
     # Reproject the GeoDataFrame to match the mask's CRS
     if pixc_gdf.crs != mask_crs:
         pixc_gdf = pixc_gdf.to_crs(mask_crs)
@@ -117,8 +116,8 @@ def _trim2mask_general(pixc_gdf, extraction_mask, mask_transform, mask_crs):
     
     return trimmed_gdf
 
-"""
-def _get_RiverSP(trimmed_pixc_gdf, cl_gen, hemi, season, pixcdate, ileID, figdir, odir, buffer_conv=50):
+
+def _get_RiverSP(trimmed_pixc_gdf, cl_gen, pixcdate, figdir, odir,  buffer_conv=50, init_buffer_width=2000, transect_len=2000):
 
     # Function for extracting a 'riverSP' product over all branches of the river centerline
     # For rotating the buffer
@@ -140,12 +139,9 @@ def _get_RiverSP(trimmed_pixc_gdf, cl_gen, hemi, season, pixcdate, ileID, figdir
 
         # convert to UTM
         sel_channel_utm = sel_channel.to_crs(utm_crs)
-        coords_list = list(sel_channel_utm.geometry.iloc[0].coords)
-        x_coords = [x for x,y in coords_list]
-        y_coords = [y for x,y in coords_list]
 
         # extract point locations every 100 m along the line
-        sel_channel_utm["point_list"] = sel_channel_utm.apply(lambda x: create_points(row=x, point_separation=200), axis=1)
+        sel_channel_utm["point_list"] = sel_channel_utm.apply(lambda x: tools.create_points(row=x, point_separation=200), axis=1)
 
         #Create a point dataframe by exploding the point list into individual points/rows
         points_df = sel_channel_utm.explode(column="point_list")
@@ -157,25 +153,13 @@ def _get_RiverSP(trimmed_pixc_gdf, cl_gen, hemi, season, pixcdate, ileID, figdir
             continue
 
         # Extract data from SWOT PIXC based on large manual buffer (larger than any expected channel width)
-        # Buffer width and transect length dependant on maximum expected channel width (knowledge from visual inspection of S2 masks) for each season
-        if season == 'LF':
-            init_buffer_width = 2000
-            transect_len = 2000
-        else:
-            init_buffer_width = 3000
-            transect_len = 3000
-
         buffer_width_prev = init_buffer_width*100 # set large previous buffer width to begin with
         buffer_width = init_buffer_width
 
         iter = 1
-        while abs(buffer_width - buffer_width_prev) > buffer_conv and swot_break == False and iter <= iter_max: # condition for buffer width convergence
+        while abs(buffer_width - buffer_width_prev) > buffer_conv and swot_break and iter <= iter_max: # condition for buffer width convergence
 
-            #print('Updating buffer width:',buffer_width)
-
-            #print('Extracting SWOT data within channel buffer...')
-            tile_figdir = figdir+'/'+tileID+'/generated_nodes/'
-            sub_swot = trim_to_one_channel(sel_channel, trimmed_pixc_gdf,hemi,tile_figdir,pixcdate,channelID,buffer_width=buffer_width,savePlot=True) # Extracts SWOT data for one channel
+            sub_swot = tools.trim_to_one_channel(sel_channel, trimmed_pixc_gdf, buffer_width=buffer_width) # Extracts SWOT data for one channel
             sub_swot_utm = sub_swot.to_crs(utm_crs)
 
             # if sub_swot contains no data...break and continue
@@ -191,7 +175,7 @@ def _get_RiverSP(trimmed_pixc_gdf, cl_gen, hemi, season, pixcdate, ileID, figdir
                 ratioval = 0.05
 
             shapeout = shapely.concave_hull(mpt, ratio=ratioval,allow_holes=True)
-            swot_boundary = gpd.GeoDataFrame(geometry=[shapeout],crs=utm_crs)
+            swot_boundary = gpd.GeoDataFrame(geometry=[shapeout], crs=utm_crs)
 
             # save transects to a gdf for plotting
             transects_gdf = gpd.GeoDataFrame() # initialize dataframe
@@ -220,7 +204,7 @@ def _get_RiverSP(trimmed_pixc_gdf, cl_gen, hemi, season, pixcdate, ileID, figdir
                 coord_af = [coord_af[0][0],coord_af[0][1]]
 
                 # Compute vector and rotated vector
-                vec = calculate_vector_general(coord_b4,coord_af)
+                vec = tools.calculate_vector_general(coord_b4,coord_af)
                 rot_vec = np.dot(vec, R)
 
                 pt1 = np.array(coord) - transect_len*rot_vec
@@ -241,7 +225,7 @@ def _get_RiverSP(trimmed_pixc_gdf, cl_gen, hemi, season, pixcdate, ileID, figdir
                 extract_polys = pd.concat([extract_polys,extract_poly_gdf])
 
                 sub_swot_utm['inPoly']=extract_poly_gdf.geometry.iloc[0].contains(sub_swot_utm.geometry)
-                subset = sub_swot_utm[sub_swot_utm['inPoly']==True]
+                subset = sub_swot_utm[sub_swot_utm['inPoly'].values]
 
                 lineW =inter_geom.geometry.length
 
@@ -298,7 +282,7 @@ def _get_RiverSP(trimmed_pixc_gdf, cl_gen, hemi, season, pixcdate, ileID, figdir
             print('Buffer width not converged, max iteration reached.')
             
 
-        if swot_break == True:
+        if swot_break:
             print('No SWOT data around channel...skipping channel: ',channelID)
             continue
         
@@ -306,7 +290,7 @@ def _get_RiverSP(trimmed_pixc_gdf, cl_gen, hemi, season, pixcdate, ileID, figdir
         #print('Final buffer width:',buffer_width_prev)
         riverSP_gdf = pd.concat([riverSP_gdf,riverSP_gdf_oneChannel])
 
-
+        """
         # Plot selected channel centerline, extracted points, and transects for each channel
         ax = sel_channel_utm.plot(figsize=(5,5))
         points_df.plot(ax=ax, zorder=2, color="black", markersize=50, marker=".")
@@ -320,10 +304,10 @@ def _get_RiverSP(trimmed_pixc_gdf, cl_gen, hemi, season, pixcdate, ileID, figdir
         ax.set_yticks([])
 
 
-        isExist = os.path.exists(figdir+'/'+tileID+'/generated_nodes/')
+        isExist = os.path.exists(figdir+'/generated_nodes/')
         if not isExist:
-            os.makedirs(figdir+'/'+tileID+'/generated_nodes/')
-        plt.savefig(figdir+'/'+tileID+'/generated_nodes/'+str(pixcdate)+'_genNodes_ch'+str(channelID)+'.png')
+            os.makedirs(figdir+'/generated_nodes/')
+        plt.savefig(figdir+'/generated_nodes/'+str(pixcdate)+'_genNodes_ch'+str(channelID)+'.png')
         plt.close()
 
         # Save also the swot generated polygon
@@ -336,19 +320,20 @@ def _get_RiverSP(trimmed_pixc_gdf, cl_gen, hemi, season, pixcdate, ileID, figdir
         # Remove x and y tick marks
         ax.set_xticks([])
         ax.set_yticks([])
-        plt.savefig(figdir+'/'+tileID+'/generated_nodes/'+str(pixcdate)+'_SWOTBOUNDARY_ch'+str(channelID)+'.png')
+        plt.savefig(figdir+'/generated_nodes/'+str(pixcdate)+'_SWOTBOUNDARY_ch'+str(channelID)+'.png')
         plt.close()
 
         # print('RiverSP for channel No. ',channelID)
         # print(riverSP_gdf.loc[riverSP_gdf.channelID == channelID])
 
         # Save the SWOT boundary (buffer) used here to extract PIXC data
-        testfile = glob.glob(odir+'riverSP_out/'+tileID+'/'+pixcdate+'_'+str(channelID)+'_subswot.geojson')
+        
+        testfile = glob.glob(odir+'riverSP_out/'+pixcdate+'_'+str(channelID)+'_subswot.geojson')
         if not testfile:    
             print('Saving boundary of selected SWOT data...')
             sub_swot.to_file(odir+'riverSP_out/'+tileID+'/'+pixcdate+'_'+str(channelID)+'_subswot.geojson')
             print('SUCCESS!')
+        """
 
 
     return riverSP_gdf
-"""

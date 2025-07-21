@@ -108,7 +108,7 @@ class River:
 
     def process_swot(self, dilate=5, engine='h5netcdf'):
 
-        for i in range(len(self.masks)):
+        for i in range(len(self.swot_obs)):
 
             # process the extraction mask for each mask
             self.masks[i].process_extraction_mask(dilate=dilate)

@@ -7,6 +7,7 @@ from tqdm import tqdm
 
 # functional imports
 from datetime import datetime
+from osgeo import gdal
 import rasterio
 from skimage.filters import gaussian
 from skimage.morphology import skeletonize, binary_dilation, binary_erosion, remove_small_holes, label
