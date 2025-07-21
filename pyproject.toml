@@ -20,10 +20,10 @@ platforms = ["win-64"]
 python = "==3.13.2"
 ipykernel = "==6.29.5"
 tqdm = "==4.67.1"
-geopandas = "==1.0.0"
+geopandas = "==1.0.1"
 rasterio = "==1.4.3"
 gdal = "==3.10.2"  # Keep fixed; tightly coupled with rasterio
-matplotlib = ">=3.10.04"
+matplotlib = ">=3.10.0"
 contextily = ">=1.6.2"
 ruff = ">=0.10.0"
 scipy = "==1.15.2"
