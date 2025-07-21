@@ -183,6 +183,7 @@ cython_debug/
 
 # project specific folders
 data/*
+environment.yml
 example_data/SWOT/*
 example_data/watermasks/*
 environment.yml
