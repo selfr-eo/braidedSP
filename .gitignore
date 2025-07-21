@@ -183,6 +183,7 @@ cython_debug/
 
 # project specific folders
 data/*
+environment.yml
 
 # temporary likely change when publishing
 .gitattributes
