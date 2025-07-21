@@ -183,6 +183,9 @@ cython_debug/
 
 # project specific folders
 data/*
+example_data/SWOT/*
+example_data/watermasks/*
+environment.yml
 
 # temporary likely change when publishing
 .gitattributes
