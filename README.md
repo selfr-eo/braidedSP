@@ -32,3 +32,11 @@ TODO
 
 - view_BraidedSP - notebook for viewing the processed SWOT data with respect to the generated centerlines. Paper figures plotted here.
 
+## Downloading SWOT PIXC data
+Due to large size, example SWOT pixel cloud tiles are not included in this repository. To properly run the examples here, you should download the following tiles from wherever you get your SWOT data. We recommend using NASA's Earth Data search for quick downloads when you only need a few specific tiles: https://search.earthdata.nasa.gov/search. Choose project **SWOT**, collection **SWOT Level 2 Water Mask Pixel Cloud Data Product, Version C**, and paste the following for **Granule ID**.
+
+Low flow tile (02-03-2024)
+- SWOT_L2_HR_PIXC_010_258_112L_20240203T045957_20240203T050008_PIC0_01.nc
+
+High flow tile (07-19-2024)
+- SWOT_L2_HR_PIXC_018_258_112L_20240719T030033_20240719T030044_PIC0_01.nc
