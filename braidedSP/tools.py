@@ -588,7 +588,7 @@ def trim_to_one_channel(sel_cl_gdf, swot_gdf, buffer_width=1000):
 
         # project SWOT PIXC to channel centerline
         clipped_gdf['dist'] = projectToCenterline(sel_cl_gdf, clipped_gdf[['geometry']])
-        clipped_gdf['channelID'] = int(sel_cl_gdf.branch_id)
+        clipped_gdf['channelID'] = int(sel_cl_gdf.loc[0, 'branch_id'])
 
     return clipped_gdf
 

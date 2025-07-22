@@ -25,6 +25,14 @@ class Centerline:
     def __post_init__(self):
 
         self.crs = self.gdf.crs
+    
+    @classmethod
+    def from_file(cls, river_name, date, path):
+
+        gdf = gpd.read_file(path)
+
+        return cls(river_name, date, gdf)
+
 
 
     def trim_to_river_bounds(self, river_bounds):

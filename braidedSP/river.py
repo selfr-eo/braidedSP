@@ -95,6 +95,12 @@ class River:
             path = os.path.join(self.outdir, f"centerlines_{cl.river_name}_{cl.date.strftime('%Y-%m-%d')}.{file_type}")
             cl.gdf.to_file(path)
 
+
+    def load_centerlines(self, centerline_params):
+
+        for params in centerline_params:
+            self.centerlines.append(Centerline.from_file(**params))
+
     def add_swot(self, swot_path:str, date:datetime):
 
         swot = SWOT(
@@ -106,7 +112,7 @@ class River:
 
         self.swot_obs.append(swot)
 
-    def process_swot(self, dilate=5, engine='h5netcdf'):
+    def process_swot(self, dilate=5, engine='netcdf'):
 
         for i in range(len(self.swot_obs)):
 
@@ -117,10 +123,14 @@ class River:
             extraction_mask = self.masks[i].extraction_mask
             mask_transform = self.masks[i].transform
             mask_crs = self.masks[i].crs
+
             self.swot_obs[i].load_pixc(extraction_mask, mask_transform, mask_crs, engine=engine)
 
 
     def extract_water_levels(self):
 
-        pass
+        for i in range(len(self.swot_obs)):
+
+            self.swot_obs[i].cal_SP(self.centerlines[i].gdf)
+
         
