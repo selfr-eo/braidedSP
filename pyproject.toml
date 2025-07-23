@@ -1,10 +1,8 @@
 [project]
 authors = [{name = "connorchewning", email = "62517413+connorchewning@users.noreply.github.com"}]
 dependencies = [
-    "ipykernel >= 6.29.5",
     "tqdm >=4.67.1",
     "rasterio ==1.4.3",
-    "gdal ==3.10.2",
     "rioxarray >=0.19.0,<0.20",
     "xarray >=2025.1.1",
     "geopandas >=1.0.1",
@@ -16,7 +14,7 @@ dependencies = [
     "contextily >=1.6.2"
 ]
 
-name = "braided_rivers"
+name = "braidedSP"
 requires-python = ">=3.9"
 version = "0.1.0"
 
@@ -33,10 +31,11 @@ platforms = ["win-64"]
 
 [tool.pixi.dependencies]
 python = ">=3.9"
+ipykernel = ">=6.29.5"
+gdal = "==3.10.2"
 
 [tool.pixi.pypi-dependencies]
-braided_rivers = { path = ".", editable = true }
-check-copyright = ">=6.29.5"
+braidedSP = { path = ".", editable = true }
 
 
 [tool.pixi.tasks]
