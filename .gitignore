@@ -1,7 +1,3 @@
-# Figs folder
-figs/
-odir/
-
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -185,6 +181,7 @@ cython_debug/
 data/*
 examples/example_data/SWOT/*
 examples/example_data/watermasks/*
+examples/example_data/odir/*
 environment.yml
 
 # temporary likely change when publishing
