@@ -183,6 +183,7 @@ examples/example_data/SWOT/*
 examples/example_data/watermasks/*
 examples/example_data/odir/*
 environment.yml
+figs_sarah/
 
 # temporary likely change when publishing
 .gitattributes
