@@ -117,6 +117,7 @@ def sort_cl_by_closestReach(start_reach,end_reach,distance_list,cl):
 
     return all_coords, reach_order_id
 
+
 def sort_SWORD_cl(cl,showPlots=True):
 
     # 1. EXTRACT REACH ENDPOINTS
@@ -290,9 +291,9 @@ def getNearestMaskDate(pixcdate, tileID, LFmonths, HFmonths):
     # LFmonths and HFmonths - list of low flow and high flow months, respectively
 
     maskdate = pixcdate[4:6]+pixcdate[2:4]
-    #water_mask_tiff = glob.glob("/Volumes/OneTouch/work/water_masks/brahmaputra/"+tileID+"/S2*"+str(maskdate)+".tif")
-    watermask_string = r"D:\work\water_masks\brahmaputra\{a}\S2_WaterMask_NDWI_{b}.tif".format(a=tileID,b=maskdate)
-    water_mask_tiff = glob.glob(watermask_string)
+    water_mask_tiff = glob.glob("D:/work/water_masks/brahmaputra/"+tileID+"/S2*"+str(maskdate)+".tif")
+    print(water_mask_tiff)
+    # water_mask_tiff = glob.glob("/Volumes/OneTouch/work/water_masks/brahmaputra/"+tileID+"/S2*"+str(maskdate)+".tif")
 
 
      # Need to find next closest mask in the same season...
@@ -318,8 +319,7 @@ def getNearestMaskDate(pixcdate, tileID, LFmonths, HFmonths):
                     nextmonth = str(nextmonth)
 
                 maskdate = nextmonth+pixcdate[2:4]
-                watermask_string = r"D:\work\water_masks\brahmaputra\{a}\S2_WaterMask_NDWI_{b}.tif".format(a=tileID,b=maskdate)
-                water_mask_tiff = glob.glob(watermask_string)
+                water_mask_tiff = glob.glob("D:/work/water_masks/brahmaputra/"+tileID+"/S2*"+str(maskdate)+".tif")
                 if water_mask_tiff:
                     break
 
@@ -332,8 +332,7 @@ def getNearestMaskDate(pixcdate, tileID, LFmonths, HFmonths):
                     nextmonth = str(nextmonth)
 
                 maskdate = nextmonth+pixcdate[2:4]
-                watermask_string = r"D:\work\water_masks\brahmaputra\{a}\S2_WaterMask_NDWI_{b}.tif".format(a=tileID,b=maskdate)
-                water_mask_tiff = glob.glob(watermask_string)
+                water_mask_tiff = glob.glob("D:/work/water_masks/brahmaputra/"+tileID+"/S2*"+str(maskdate)+".tif")
                 if water_mask_tiff:
                     break
 
@@ -346,8 +345,7 @@ def getNearestMaskDate(pixcdate, tileID, LFmonths, HFmonths):
                     nextmonth = str(nextmonth)
 
                 maskdate = nextmonth+pixcdate[2:4]
-                watermask_string = r"D:\work\water_masks\brahmaputra\{a}\S2_WaterMask_NDWI_{b}.tif".format(a=tileID,b=maskdate)
-                water_mask_tiff = glob.glob(watermask_string)
+                water_mask_tiff = glob.glob("D:/work/water_masks/brahmaputra/"+tileID+"/S2*"+str(maskdate)+".tif")
                 if water_mask_tiff:
                     break
 
