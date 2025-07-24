@@ -1,11 +1,11 @@
 
-# Publication archive for [Franze et al. 2025](link_to_DOI)
+# Publication archive for [Preprint: Franze et al. 2025](https://essopenarchive.org/doi/full/10.22541/essoar.174558891.16884958)
 
-This directory holds all of the notebooks and scripts for the analysis conducted within [Franze et al. 2025](link_to_DOI). While this folder should not be edited in future editions of the repository, to ensure that you are viewing the tools related to the paper at the time of publishing please make sure that you are viewing this on the 'publication' branch.
+This directory holds all of the notebooks and scripts for the analysis conducted within [Preprint: Franze et al. 2025](https://essopenarchive.org/doi/full/10.22541/essoar.174558891.16884958). While this folder should not be edited in future editions of the repository, to ensure that you are viewing the tools related to the paper at the time of publishing please make sure that you are viewing this on the 'publication' branch.
 
-Note: the scripts provided here are to aid in reproduceability of results, but are not organized or written in a way that is necessarily easy to run. Thus we have provided the tools in a packaged format. If you are more interested in running the workflow on your own area of interest, information on the package can be found on within the main directory of this repo. [braidedSP]().
+Note: the scripts provided here are to aid in reproduceability of results, but are not organized or written in a way that is necessarily easy to run. Thus we have provided the tools in a packaged format. If you are more interested in running the workflow on your own area of interest, information on the package can be found on within the main directory of this repo. [braidedSP](https://github.com/selfr-eo/braidedSP).
 
-Additional note: Due to the large file size of the SWOT PIXC data and Sentinel-2 composites, it is unefeasible to share the exact files ingested within these scripts. We have instead provided instructions on how to extract the same SWOT PIXC data as we used directly from NASA's Earth Data. See [Downloading SWOT PIXC data](####Downloading-SWOT-PIXC-data).
+Additional note: Due to the large file size of the SWOT PIXC data and Sentinel-2 composites, it is unefeasible to share the exact files ingested within these scripts. We have instead provided instructions on how to extract the same SWOT PIXC data as we used directly from NASA's Earth Data and a simple Google Earth Engine Script for exctracting water masks. See [Downloading SWOT PIXC data](##Downloading-SWOT-PIXC-data) and [Processing and downloading S2 NDWI composites](##Processing-and-downloading-S2-NDWI-composites)
 
 
 ## Directory structure
