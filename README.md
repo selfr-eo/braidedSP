@@ -26,7 +26,7 @@ A packaged version of the tools may be found within [braidedSP](https://github.c
 > [!CAUTION]
 > braidedSP has had limited testing but further developments may come. Installation via the following methods is not garunteed to work and may requre trouble shooting on your part.
 
-While the package can be install directly from github using pip, there are a few caveats. The package relies upon GDAL which cannot be installed with a simple 'pip install gdal' command. We recommend installing gdal prior to package installation via your normal route or through conda-forge with the following command. We have not tested different gdal version but have pinned this specific gdal version to ensure compatability with the rasterio version pinned within the pyproject.toml
+While the package can be install directly from github using pip, there are a few caveats. The package relies upon GDAL which cannot be installed with a simple 'pip install gdal' command. We recommend installing gdal prior to package installation via your normal route or through conda-forge with the following command. We have not tested different gdal versions but have pinned this specific gdal version to ensure compatibility with the rasterio version pinned within the pyproject.toml
 
 > Note: Ensure that `conda` or `mamba` are installed on your system before running the following command.
 ```sh

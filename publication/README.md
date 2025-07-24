@@ -3,9 +3,9 @@
 
 This directory holds all of the notebooks and scripts for the analysis conducted within [Preprint: Franze et al. 2025](https://essopenarchive.org/doi/full/10.22541/essoar.174558891.16884958). While this folder should not be edited in future editions of the repository, to ensure that you are viewing the tools related to the paper at the time of publishing please make sure that you are viewing this on the 'publication' branch.
 
-Note: the scripts provided here are to aid in reproduceability of results, but are not organized or written in a way that is necessarily easy to run. Thus we have provided the tools in a packaged format. If you are more interested in running the workflow on your own area of interest, information on the package can be found on within the main directory of this repo. [braidedSP](https://github.com/selfr-eo/braidedSP).
+Note: the scripts provided here are to aid in reproducibility of results, but are not organized or written in a way that is necessarily easy to run. Thus we have provided the tools in a packaged format. If you are more interested in running the workflow on your own area of interest, information on the package can be found on within the main directory of this repo. [braidedSP](https://github.com/selfr-eo/braidedSP).
 
-Additional note: Due to the large file size of the SWOT PIXC data and Sentinel-2 composites, it is unefeasible to share the exact files ingested within these scripts. We have instead provided instructions on how to extract the same SWOT PIXC data as we used directly from NASA's Earth Data and a simple Google Earth Engine Script for exctracting water masks. See [Downloading SWOT PIXC data](##Downloading-SWOT-PIXC-data) and [Processing and downloading S2 NDWI composites](##Processing-and-downloading-S2-NDWI-composites)
+Additional note: Due to the large file size of the SWOT PIXC data and Sentinel-2 composites, it is unfeasible to share the exact files ingested within these scripts. We have instead provided instructions on how to extract the same SWOT PIXC data as we used directly from NASA's Earth Data and a simple Google Earth Engine Script for extracting water masks. See [Downloading SWOT PIXC data](##Downloading-SWOT-PIXC-data) and [Processing and downloading S2 NDWI composites](##Processing-and-downloading-S2-NDWI-composites)
 
 
 ## Directory structure
@@ -14,7 +14,7 @@ Additional note: Due to the large file size of the SWOT PIXC data and Sentinel-2
     - [gen_centerlines.ipynb](https://github.com/selfr-eo/braidedSP/blob/publication/publication/notebooks/gen_centerlines.ipynb) - Notebook used to generate braided centerlines from monthly sentinel-2 NDWI composites
     - [gen_BraidedSP.ipynb](https://github.com/selfr-eo/braidedSP/blob/publication/publication/notebooks/gen_BraidedSP.ipynb) - Notebook used to extract SWOT PIXC data to braidedSP product
     - [view_BraidedSP.ipynb](https://github.com/selfr-eo/braidedSP/blob/publication/publication/notebooks/view_BraidedSP.ipynb) - Notebook used to compare braidedSP product with SWOT RiverSP product
-    - [width_analysis.ipynb](https://github.com/selfr-eo/braidedSP/blob/publication/publication/notebooks/width_analysis.ipynb) - Additional notebook used to analyse widths extracted BraidedSP product
+    - [width_analysis.ipynb](https://github.com/selfr-eo/braidedSP/blob/publication/publication/notebooks/width_analysis.ipynb) - Additional notebook used to analyze widths extracted BraidedSP product
 - [tools](https://github.com/selfr-eo/braidedSP/tree/publication/publication/tools): Additional tools used within the notebooks
     - [procBraided.py](https://github.com/selfr-eo/braidedSP/blob/publication/publication/tools/procBraided.py)
     - [skeletonize_func.py](https://github.com/selfr-eo/braidedSP/blob/publication/publication/tools/skeletonize_func.py)
