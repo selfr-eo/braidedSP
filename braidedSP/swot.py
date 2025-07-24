@@ -309,9 +309,13 @@ def _get_RiverSP(
                 riverSP_temp["dhdp_med"] = med_dhdp
                 riverSP_temp["sig0_med"] = med_sig0
 
-                riverSP_gdf_oneChannel = pd.concat(
-                    [riverSP_gdf_oneChannel, riverSP_temp]
-                )
+                # drop rows with nan valeus
+                riverSP_temp = riverSP_temp.dropna(how='all')
+
+                if len(riverSP_temp) > 0:
+                    riverSP_gdf_oneChannel = pd.concat(
+                        [riverSP_gdf_oneChannel, riverSP_temp]
+                    )
 
             iter = iter + 1
 
