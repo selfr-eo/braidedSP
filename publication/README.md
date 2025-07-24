@@ -10,15 +10,15 @@ Additional note: Due to the large file size of the SWOT PIXC data and Sentinel-2
 
 ## Directory structure
 
-- [notebooks](): Holds the notebooks used for analysis of data.
-    - [gen_centerlines.ipynb]() - Notebook used to generate braided centerlines from monthly sentinel-2 NDWI composites
-    - [gen_BraidedSP.ipynb]() - Notebook used to extract SWOT PIXC data to braidedSP product
-    - [view_BraidedSP.ipynb]() - Notebook used to compare braidedSP product with SWOT RiverSP product
-    - [width_analysis.ipynb]() - Additional notebook used to analyse widths extracted BraidedSP product
-- [tools](): Additional tools used within the notebooks
-    - [procBraided.py]()
-    - [skeletonize_func.py]()
--[figs](): Some of the raw figures produced by the scripts that are presented within the paper.
+- [notebooks](https://github.com/selfr-eo/braidedSP/tree/publication/publication/notebooks): Holds the notebooks used for analysis of data.
+    - [gen_centerlines.ipynb](https://github.com/selfr-eo/braidedSP/blob/publication/publication/notebooks/gen_centerlines.ipynb) - Notebook used to generate braided centerlines from monthly sentinel-2 NDWI composites
+    - [gen_BraidedSP.ipynb](https://github.com/selfr-eo/braidedSP/blob/publication/publication/notebooks/gen_BraidedSP.ipynb) - Notebook used to extract SWOT PIXC data to braidedSP product
+    - [view_BraidedSP.ipynb](https://github.com/selfr-eo/braidedSP/blob/publication/publication/notebooks/view_BraidedSP.ipynb) - Notebook used to compare braidedSP product with SWOT RiverSP product
+    - [width_analysis.ipynb](https://github.com/selfr-eo/braidedSP/blob/publication/publication/notebooks/width_analysis.ipynb) - Additional notebook used to analyse widths extracted BraidedSP product
+- [tools](https://github.com/selfr-eo/braidedSP/tree/publication/publication/tools): Additional tools used within the notebooks
+    - [procBraided.py](https://github.com/selfr-eo/braidedSP/blob/publication/publication/tools/procBraided.py)
+    - [skeletonize_func.py](https://github.com/selfr-eo/braidedSP/blob/publication/publication/tools/skeletonize_func.py)
+-[figs](https://github.com/selfr-eo/braidedSP/tree/publication/publication/figs): Some of the raw figures produced by the scripts that are presented within the paper.
 
 
 ## Downloading SWOT PIXC data
