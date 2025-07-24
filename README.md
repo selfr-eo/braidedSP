@@ -3,7 +3,7 @@
 This repository holds the tools and code for the analysis presented within the pre-print [Franze et al. 2025](https://essopenarchive.org/doi/full/10.22541/essoar.174558891.16884958). The repo is designed to both provide the original notebooks used to conduct the analysis and create the figures used within the pre-print and also to organize the tools in a way that is easy to add your own data and process similar results for a river of your choosing.
 
 ## Publication archive
-All notebooks, functions and figures related to the pre-print [Franze et al. 2025](https://essopenarchive.org/doi/full/10.22541/essoar.174558891.16884958) at the time of publishing can be found on the 'publication' branch. Find the README.md, within the 'publication folder' to learn more about the notebooks and tools.
+All notebooks, functions and figures related to the pre-print [Franze et al. 2025](https://essopenarchive.org/doi/full/10.22541/essoar.174558891.16884958) at the time of publishing can be found on the [publication branch](). Find the README.md, within the 'publication folder' to learn more about the notebooks and tools.
 
 NOTE: Tools and functionality on the main branch may have been updated, changed or improved since publication. If you are interested in the state of the code at the time of publishing make sure that you are viewing the code on the 'publication branch'
 
@@ -43,7 +43,6 @@ https://code.earthengine.google.com/c2c5575a6ba1b2d728cdd5026689bb85
 ## Cite braidedSP
 
 In case you use braidedSP in your research or work, it would be highly appreciated if you include a reference to our [Pre-Print](https://essopenarchive.org/doi/full/10.22541/essoar.174558891.16884958) in any kind of publication.
-
 
 Cite as: Sarah Elizabeth Franze, Connor Chewning, Simon Jakob Köhn, Karina Nielsen. Braided rivers from SWOT: Water surface dynamics over multi-channel rivers. ESS Open Archive . April 25, 2025.
 DOI: 10.22541/essoar.174558891.16884958/v1
