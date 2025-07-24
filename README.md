@@ -3,7 +3,7 @@
 This repository holds the tools and code for the analysis presented within the pre-print [Franze et al. 2025](https://essopenarchive.org/doi/full/10.22541/essoar.174558891.16884958). The repo is designed to both provide the original notebooks used to conduct the analysis and create the figures used within the pre-print and also to organize the tools in a way that is easy to add your own data and process similar results for a river of your choosing.
 
 ## Publication archive
-All notebooks, functions and figures related to the pre-print [Franze et al. 2025](https://essopenarchive.org/doi/full/10.22541/essoar.174558891.16884958) at the time of publishing can be found on the [publication folder]() within the publication branch. Find the README.md, within this folder within to learn more about the notebooks and tools.
+All notebooks, functions and figures related to the pre-print [Franze et al. 2025](https://essopenarchive.org/doi/full/10.22541/essoar.174558891.16884958) at the time of publishing can be found on the [publication folder](https://github.com/selfr-eo/braidedSP/tree/publication/publication) within the publication branch. Find the README.md, within this folder within to learn more about the notebooks and tools.
 
 > [!CAUTION]
 > Tools and functionality on the main branch may have been updated, changed or improved since publication. If you are interested in the state of the code at the time of publishing make sure that you are viewing the code on the `publication branch`
@@ -26,7 +26,7 @@ A packaged version of the tools may be found within [braidedSP](https://github.c
 > [!CAUTION]
 > braidedSP has had limited testing but further developments may come. Installation via the following methods is not garunteed to work and may requre trouble shooting on your part.
 
-While the package can be install directly from github using pip, there are a few caveats. The package relies upon GDAL which cannot be installed with a simple 'pip install gdal' command. We recommend installing gdal prior to package installation via your normal route or through conda-forge with the following command. We have not tested different gdal version but have pinned this specific gdal version to ensure compatability with the rasterio version pinned within the pyproject.toml
+While the package can be install directly from github using pip, there are a few caveats. The package relies upon GDAL which cannot be installed with a simple 'pip install gdal' command. We recommend installing gdal prior to package installation via your normal route or through conda-forge with the following command. We have not tested different gdal versions but have pinned this specific gdal version to ensure compatibility with the rasterio version pinned within the pyproject.toml
 
 > Note: Ensure that `conda` or `mamba` are installed on your system before running the following command.
 ```sh
@@ -46,7 +46,7 @@ pixi install
 ```
 
 #### Examples
-It is recommended to check out our example workflow notebook ([full_workflow.ipynb]()) in the [examples]() folder which describes in detail what is needed to get started with the package. There are a few pieces of prior information needed, so no minimal working example is provided here.
+It is recommended to check out our example workflow notebook ([braidedSP_workflow.ipynb](https://github.com/selfr-eo/braidedSP/blob/main/examples/braidedSP_workflow.ipynb)) in the [examples](https://github.com/selfr-eo/braidedSP/tree/main/examples) folder which describes in detail what is needed to get started with the package. There are a few pieces of prior information needed, so no minimal working example is provided here.
 
 #### Downloading SWOT PIXC data
 Due to large size, example SWOT pixel cloud tiles are not included in this repository. To properly run the examples here, you should download the following tiles from wherever you get your SWOT data. We recommend using NASA's Earth Data search for quick downloads when you only need a few specific tiles: https://search.earthdata.nasa.gov/search. Choose project **SWOT**, collection **SWOT Level 2 Water Mask Pixel Cloud Data Product, Version C**, and paste the following for **Granule ID**.
@@ -69,8 +69,11 @@ https://code.earthengine.google.com/c2c5575a6ba1b2d728cdd5026689bb85
 
 In case you use braidedSP in your research or work, it would be highly appreciated if you include a reference to our [Pre-Print](https://essopenarchive.org/doi/full/10.22541/essoar.174558891.16884958) in any kind of publication.
 
-Cite as: Sarah Elizabeth Franze, Connor Chewning, Simon Jakob Köhn, Karina Nielsen. Braided rivers from SWOT: Water surface dynamics over multi-channel rivers. ESS Open Archive . April 25, 2025.
+Cite as:
+```bibtex
+Sarah Elizabeth Franze, Connor Chewning, Simon Jakob Köhn, Karina Nielsen. Braided rivers from SWOT: Water surface dynamics over multi-channel rivers. ESS Open Archive . April 25, 2025.
 DOI: 10.22541/essoar.174558891.16884958/v1
+```
 <!-- 
 ```bibtex
 @article{franze2025,
