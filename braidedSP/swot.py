@@ -310,7 +310,8 @@ def _get_RiverSP(
                 riverSP_temp["sig0_med"] = med_sig0
 
                 # drop rows with nan valeus
-                riverSP_temp = riverSP_temp.dropna(how='all')
+                riverSP_temp = riverSP_temp.dropna(how='all', axis=0)
+                riverSP_temp = riverSP_temp.dropna(how='all', axis=1)
 
                 if len(riverSP_temp) > 0:
                     riverSP_gdf_oneChannel = pd.concat(
@@ -337,7 +338,11 @@ def _get_RiverSP(
 
         # print('Final channel width:',medW)
         # print('Final buffer width:',buffer_width_prev)
-        riverSP_gdf = pd.concat([riverSP_gdf, riverSP_gdf_oneChannel])
+        riverSP_temp = riverSP_temp.dropna(how='all', axis=0)
+        riverSP_temp = riverSP_temp.dropna(how='all', axis=1)
+
+        if len(riverSP_gdf_oneChannel) > 0:
+            riverSP_gdf = pd.concat([riverSP_gdf, riverSP_gdf_oneChannel])
 
         """
         # Plot selected channel centerline, extracted points, and transects for each channel
