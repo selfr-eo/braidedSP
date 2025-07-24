@@ -13,8 +13,8 @@ All notebooks, functions and figures related to the pre-print [Franze et al. 202
 - This work utilized multispectral data from Sentinel-2 to define river masks and derive updated centerlines for braided rivers. The updated centerlines are then used to create a similar 'braidedSP' product that provides node aggregated elevations and widths along braided centerlines. See Figure 1 from [Preprint: Franze et al. 2025](https://essopenarchive.org/doi/full/10.22541/essoar.174558891.16884958).
 - Understanding the differences water surface levels within various branches in braided rivers is crucial for proper hydraulic modeling and morphological studies. We found that there are significant differences between parallel channels in low flow conditions that are not seen by the RiverSP product. Furthermore comparison to high flows shows less difference between river slopes between such channels. See Figure 2 from [Preprint: Franze et al. 2025](https://essopenarchive.org/doi/full/10.22541/essoar.174558891.16884958).
 
-![Figure 1](.\publication\figs\braidedSP_output.pdf)
-![Figure 2](.\publication\figs\slopes_updated_07232025.pdf)
+![Figure 1](publication/figs/braidedSP_output.pdf)
+![Figure 2](publication/figs/slopes_updated_07232025.pdf)
 
 
 ## BraidedSP Package and tools
