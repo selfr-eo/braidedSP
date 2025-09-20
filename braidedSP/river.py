@@ -127,7 +127,7 @@ class River:
             self.swot_obs[i].load_pixc(extraction_mask, mask_transform, mask_crs, engine=engine)
 
 
-    def extract_water_levels(self):
+    def extract_braidedSP(self):
 
         for i in range(len(self.swot_obs)):
 
