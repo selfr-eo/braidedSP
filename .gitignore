@@ -184,6 +184,7 @@ examples/example_data/watermasks/*
 examples/example_data/odir/*
 environment.yml
 figs_sarah/
+.vscode/
 
 # temporary likely change when publishing
 .gitattributes
