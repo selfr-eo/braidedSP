@@ -70,7 +70,7 @@ class SWOT:
 
 # ------------------------------------------------------------------------------------------
 # helper functions
-def _readPIXC(filename, gdf_buffered, engine="h5netcdf"):
+def _readPIXC(filename, gdf_buffered, include_dark_water=False, engine="h5netcdf"):
     # If no centerline buffer to trim to, set gdf_buffered = []
     nc = xr.open_mfdataset(filename, group="pixel_cloud", engine=engine)
 
@@ -79,15 +79,27 @@ def _readPIXC(filename, gdf_buffered, engine="h5netcdf"):
 
     # Set the nc to a geopandas dataset
     class_flat = nc.classification.values.ravel()
-    lon_flat = nc.longitude.values.ravel()[class_flat == 4]
-    lat_flat = nc.latitude.values.ravel()[class_flat == 4]
-    height = nc.height.values.ravel()[class_flat == 4]
-    geoid = nc.geoid.values.ravel()[class_flat == 4]
-    water_frac = nc.water_frac.values.ravel()[class_flat == 4]
-    phase_noise_std = nc.phase_noise_std.values.ravel()[class_flat == 4]
-    dheight_dphase = nc.dheight_dphase.values.ravel()[class_flat == 4]
-    sig0 = nc.sig0.values.ravel()[class_flat == 4]
-    heightEGM = height - geoid
+
+    # determine if we are including dark water
+    if include_dark_water:
+        class_condition = (class_flat == 4)  | (class_flat == 5)
+    else:
+        class_condition = (class_flat==4)
+
+    lon_flat = nc.longitude.values.ravel()[class_condition]
+    lat_flat = nc.latitude.values.ravel()[class_condition]
+    height = nc.height.values.ravel()[class_condition]
+    geoid = nc.geoid.values.ravel()[class_condition]
+    solid_earth_tide = nc.solid_earth_tide.values.ravel()[class_condition]
+    load_tide = nc.load_tide_fes.values.ravel()[class_condition]
+    pole_tide = nc.pole_tide.values.ravel()[class_condition]
+    water_frac = nc.water_frac.values.ravel()[class_condition]
+    phase_noise_std = nc.phase_noise_std.values.ravel()[class_condition]
+    dheight_dphase = nc.dheight_dphase.values.ravel()[class_condition]
+    sig0 = nc.sig0.values.ravel()[class_condition]
+
+    # correction for solid earth/load/pole tide effects (e.g., see SWOT User Handbook, section 3.1.25)
+    heightEGM = height - geoid - solid_earth_tide - load_tide - pole_tide
 
     # create geodataframe
     data = {
