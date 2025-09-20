@@ -48,11 +48,11 @@ class SWOT:
         mask_transform,
         mask_crs,
         centerline_mask=[],
-        include_dark_water=False,
+        classes=['open_water'],
         engine="h5netcdf",
     ):
         # read in initial pixc data, clip if there is an initial buffered centerline mask provided
-        pixc_gdf = _readPIXC(self.path, gdf_buffered=centerline_mask, include_dark_water=include_dark_water, engine=engine)
+        pixc_gdf = _readPIXC(self.path, gdf_buffered=centerline_mask, classes=classes, engine=engine)
 
         # Trim data to simplified extraction mask
         self.gdf = _trim2mask_general(
@@ -71,22 +71,34 @@ class SWOT:
 
 # ------------------------------------------------------------------------------------------
 # helper functions
-def _readPIXC(filename, gdf_buffered, include_dark_water=False, engine="h5netcdf"):
+def _translateClass(flag_meanings):
+
+    class_dict = {
+        'land':1,
+        'land_near_water':2,
+        'water_near_land':3,
+        'open_water':4,
+        'dark_water':5,
+        'low_coh_water_near_land':6,
+        'open_low_coh_water':7
+    }
+    flag_values = [class_dict[flag_meaning] for flag_meaning in flag_meanings]
+
+    return flag_values
+
+def _readPIXC(filename, gdf_buffered, classes=['open_water'], engine="h5netcdf"):
     # If no centerline buffer to trim to, set gdf_buffered = []
     nc = xr.open_mfdataset(filename, group="pixel_cloud", engine=engine)
 
     # Set crs of nc file
     nc = nc.rio.write_crs("EPSG:4326", inplace=True)
 
-    # Set the nc to a geopandas dataset
+    # select based on desired classification
     class_flat = nc.classification.values.ravel()
+    flag_values = _translateClass(classes)
+    class_condition = class_flat.isin(flag_values)
 
-    # determine if we are including dark water
-    if include_dark_water:
-        class_condition = (class_flat == 4)  | (class_flat == 5)
-    else:
-        class_condition = (class_flat==4)
-
+    # Set the nc to a geopandas dataset
     lon_flat = nc.longitude.values.ravel()[class_condition]
     lat_flat = nc.latitude.values.ravel()[class_condition]
     height = nc.height.values.ravel()[class_condition]
