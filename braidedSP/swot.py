@@ -48,10 +48,11 @@ class SWOT:
         mask_transform,
         mask_crs,
         centerline_mask=[],
+        include_dark_water=False,
         engine="h5netcdf",
     ):
         # read in initial pixc data, clip if there is an initial buffered centerline mask provided
-        pixc_gdf = _readPIXC(self.path, gdf_buffered=centerline_mask, engine=engine)
+        pixc_gdf = _readPIXC(self.path, gdf_buffered=centerline_mask, include_dark_water=include_dark_water, engine=engine)
 
         # Trim data to simplified extraction mask
         self.gdf = _trim2mask_general(
