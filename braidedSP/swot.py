@@ -96,7 +96,7 @@ def _readPIXC(filename, gdf_buffered, classes=['open_water'], engine="h5netcdf")
     # select based on desired classification
     class_flat = nc.classification.values.ravel()
     flag_values = _translateClass(classes)
-    class_condition = class_flat.isin(flag_values)
+    class_condition = np.isin(class_flat, flag_values)
 
     # Set the nc to a geopandas dataset
     lon_flat = nc.longitude.values.ravel()[class_condition]
@@ -121,7 +121,7 @@ def _readPIXC(filename, gdf_buffered, classes=['open_water'], engine="h5netcdf")
         "geoid": geoid,
         "lat": lat_flat,
         "lon": lon_flat,
-        "class": class_flat[class_flat == 4],
+        "class": class_flat[class_condition],
         "water_frac": water_frac,
         "phase_noise_std": phase_noise_std,
         "dheight_dphase": dheight_dphase,
