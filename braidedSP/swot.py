@@ -99,6 +99,7 @@ def _readPIXC(filename, gdf_buffered, classes=['open_water'], engine="h5netcdf")
     class_condition = np.isin(class_flat, flag_values)
 
     # Set the nc to a geopandas dataset
+    class_flat = class_flat[class_condition]
     lon_flat = nc.longitude.values.ravel()[class_condition]
     lat_flat = nc.latitude.values.ravel()[class_condition]
     height = nc.height.values.ravel()[class_condition]
@@ -118,10 +119,13 @@ def _readPIXC(filename, gdf_buffered, classes=['open_water'], engine="h5netcdf")
     data = {
         "height": height,
         "heightEGM": heightEGM,
-        "geoid": geoid,
         "lat": lat_flat,
         "lon": lon_flat,
-        "class": class_flat[class_condition],
+        "geoid": geoid,
+        "solid_earth_tide":solid_earth_tide,
+        "load_tide":load_tide,
+        "pole_tide":pole_tide,
+        "class": class_flat,
         "water_frac": water_frac,
         "phase_noise_std": phase_noise_std,
         "dheight_dphase": dheight_dphase,
