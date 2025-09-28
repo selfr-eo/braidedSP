@@ -67,24 +67,8 @@ https://code.earthengine.google.com/c2c5575a6ba1b2d728cdd5026689bb85
 
 ## Cite braidedSP
 
-In case you use braidedSP in your research or work, it would be highly appreciated if you include a reference to our [Pre-Print](https://essopenarchive.org/doi/full/10.22541/essoar.174558891.16884958) in any kind of publication.
+In case you use braidedSP in your research or work, it would be highly appreciated if you include a reference to our [Pre-Print](https://essopenarchive.org/doi/full/10.22541/essoar.174558891.16884958) or final publication in any kind of publication.
 
 
 Cite as: Sarah Elizabeth Franze, Simon Jakob Köhn,  Connor Chewning, Karina Nielsen. Braided rivers from SWOT: Water surface dynamics over multi-channel rivers. ESS Open Archive . April 25, 2025.
 DOI: 10.22541/essoar.174558891.16884958/v1
-```
-<!-- 
-```bibtex
-@article{franze2025,
-  title = {},
-  author = {},
-  journal = {},
-  publisher = {},
-  year = {},
-  volume = {},
-  number = {},
-  pages = {},
-  doi = {},
-  url = {},
-}
-``` -->
