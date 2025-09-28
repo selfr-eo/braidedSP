@@ -48,10 +48,11 @@ class SWOT:
         mask_transform,
         mask_crs,
         centerline_mask=[],
+        classes=['open_water'],
         engine="h5netcdf",
     ):
         # read in initial pixc data, clip if there is an initial buffered centerline mask provided
-        pixc_gdf = _readPIXC(self.path, gdf_buffered=centerline_mask, engine=engine)
+        pixc_gdf = _readPIXC(self.path, gdf_buffered=centerline_mask, classes=classes, engine=engine)
 
         # Trim data to simplified extraction mask
         self.gdf = _trim2mask_general(
@@ -70,33 +71,61 @@ class SWOT:
 
 # ------------------------------------------------------------------------------------------
 # helper functions
-def _readPIXC(filename, gdf_buffered, engine="h5netcdf"):
+def _translateClass(flag_meanings):
+
+    class_dict = {
+        'land':1,
+        'land_near_water':2,
+        'water_near_land':3,
+        'open_water':4,
+        'dark_water':5,
+        'low_coh_water_near_land':6,
+        'open_low_coh_water':7
+    }
+    flag_values = [class_dict[flag_meaning] for flag_meaning in flag_meanings]
+
+    return flag_values
+
+def _readPIXC(filename, gdf_buffered, classes=['open_water'], engine="h5netcdf"):
     # If no centerline buffer to trim to, set gdf_buffered = []
     nc = xr.open_mfdataset(filename, group="pixel_cloud", engine=engine)
 
     # Set crs of nc file
     nc = nc.rio.write_crs("EPSG:4326", inplace=True)
 
-    # Set the nc to a geopandas dataset
+    # select based on desired classification
     class_flat = nc.classification.values.ravel()
-    lon_flat = nc.longitude.values.ravel()[class_flat == 4]
-    lat_flat = nc.latitude.values.ravel()[class_flat == 4]
-    height = nc.height.values.ravel()[class_flat == 4]
-    geoid = nc.geoid.values.ravel()[class_flat == 4]
-    water_frac = nc.water_frac.values.ravel()[class_flat == 4]
-    phase_noise_std = nc.phase_noise_std.values.ravel()[class_flat == 4]
-    dheight_dphase = nc.dheight_dphase.values.ravel()[class_flat == 4]
-    sig0 = nc.sig0.values.ravel()[class_flat == 4]
-    heightEGM = height - geoid
+    flag_values = _translateClass(classes)
+    class_condition = np.isin(class_flat, flag_values)
+
+    # Set the nc to a geopandas dataset
+    class_flat = class_flat[class_condition]
+    lon_flat = nc.longitude.values.ravel()[class_condition]
+    lat_flat = nc.latitude.values.ravel()[class_condition]
+    height = nc.height.values.ravel()[class_condition]
+    geoid = nc.geoid.values.ravel()[class_condition]
+    solid_earth_tide = nc.solid_earth_tide.values.ravel()[class_condition]
+    load_tide = nc.load_tide_fes.values.ravel()[class_condition]
+    pole_tide = nc.pole_tide.values.ravel()[class_condition]
+    water_frac = nc.water_frac.values.ravel()[class_condition]
+    phase_noise_std = nc.phase_noise_std.values.ravel()[class_condition]
+    dheight_dphase = nc.dheight_dphase.values.ravel()[class_condition]
+    sig0 = nc.sig0.values.ravel()[class_condition]
+
+    # correction for solid earth/load/pole tide effects (e.g., see SWOT User Handbook, section 3.1.25)
+    heightEGM = height - geoid - solid_earth_tide - load_tide - pole_tide
 
     # create geodataframe
     data = {
         "height": height,
         "heightEGM": heightEGM,
-        "geoid": geoid,
         "lat": lat_flat,
         "lon": lon_flat,
-        "class": class_flat[class_flat == 4],
+        "geoid": geoid,
+        "solid_earth_tide":solid_earth_tide,
+        "load_tide":load_tide,
+        "pole_tide":pole_tide,
+        "class": class_flat,
         "water_frac": water_frac,
         "phase_noise_std": phase_noise_std,
         "dheight_dphase": dheight_dphase,

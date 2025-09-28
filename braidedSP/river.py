@@ -112,7 +112,7 @@ class River:
 
         self.swot_obs.append(swot)
 
-    def process_swot(self, dilate=5, engine='netcdf'):
+    def process_swot(self, dilate=5, classes=['open_water'], engine='netcdf'):
 
         for i in range(len(self.swot_obs)):
 
@@ -124,7 +124,7 @@ class River:
             mask_transform = self.masks[i].transform
             mask_crs = self.masks[i].crs
 
-            self.swot_obs[i].load_pixc(extraction_mask, mask_transform, mask_crs, engine=engine)
+            self.swot_obs[i].load_pixc(extraction_mask, mask_transform, mask_crs, classes=classes, engine=engine)
 
 
     def extract_braidedSP(self):

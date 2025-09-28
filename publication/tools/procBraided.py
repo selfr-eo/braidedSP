@@ -379,30 +379,102 @@ def projectToCenterline(gdf_cl, gdf_dat, hemi):
     return dist 
 
 
-def readPIXC(filename,gdf_buffered):
+def get_width_dependent_buffer(gdf, original_crs,hemi,buffer_width, cap_val='round'):
+    # INPUT GDF IS IN WGS84 (LAT/LON)
+    # Input 'buffer_width' == 'width_dependent' if it is desired to create a river width dependent buffer (cl must have column width)
+    # Input 'buffer_width' == real number (in meters) if it is desired to set a constant buffer width
+
+    # Determine the UTM zone of the shapefile
+    centroid = gdf.geometry.unary_union.centroid
+    utm_zone = int((centroid.x + 180) // 6) + 1  # Calculate UTM zone
+    if hemi == 'north':
+        utm_crs = f'EPSG:{32600 + utm_zone}'
+    if hemi == 'south':
+        utm_crs = f'EPSG:{32700 + utm_zone}'
+
+    # Reproject to UTM
+    gdf = gdf.to_crs(utm_crs)
+
+    # Create a buffer using the 'width' column (in meters)
+
+    if buffer_width == 'width_dependent':
+        gdf['buffered_geometry'] = gdf.geometry.buffer(gdf['width']*1.5, cap_style=cap_val)
+    else:
+        gdf['buffered_geometry'] = gdf.geometry.buffer(buffer_width, cap_style=cap_val)
+    
+    dissolved_geometry = gdf.buffered_geometry.unary_union
+    dissolved_gdf = gpd.GeoDataFrame(geometry=[dissolved_geometry], crs=gdf.crs)
+
+    # Reproject back to original CRS (WGS 84)
+    gdf_buffered = dissolved_gdf.to_crs(original_crs)
+    return gdf_buffered
+
+
+def _translateClass(flag_meanings):
+
+    class_dict = {
+        'land':1,
+        'land_near_water':2,
+        'water_near_land':3,
+        'open_water':4,
+        'dark_water':5,
+        'low_coh_water_near_land':6,
+        'open_low_coh_water':7
+    }
+    flag_values = [class_dict[flag_meaning] for flag_meaning in flag_meanings]
+
+    return flag_values
+
+
+def readPIXC(filename, gdf_buffered, classes=['open_water']):
 
     # If no centerline buffer to trim to, set gdf_buffered = []
-    
-    nc = xr.open_mfdataset(filename, group = 'pixel_cloud', engine='h5netcdf')
-    
+    nc = xr.open_mfdataset(filename, group='pixel_cloud', engine='netcdf4')
     
     # Set crs of nc file
     nc = nc.rio.write_crs("EPSG:4326", inplace=True)
 
     # Set the nc to a geopandas dataset
     class_flat = nc.classification.values.ravel()
-    lon_flat = nc.longitude.values.ravel()[class_flat == 4]
-    lat_flat = nc.latitude.values.ravel()[class_flat == 4]
-    height = nc.height.values.ravel()[class_flat == 4]
-    geoid = nc.geoid.values.ravel()[class_flat == 4]
-    water_frac = nc.water_frac.values.ravel()[class_flat == 4]
-    phase_noise_std = nc.phase_noise_std.values.ravel()[class_flat == 4]
-    dheight_dphase = nc.dheight_dphase.values.ravel()[class_flat == 4]
-    sig0 = nc.sig0.values.ravel()[class_flat == 4]
-    heightEGM = height-geoid
+    flag_values = _translateClass(classes)
+    class_condition = np.isin(class_flat, flag_values)
 
+    class_flat = class_flat[class_condition]
+    lon_flat = nc.longitude.values.ravel()[class_condition]
+    lat_flat = nc.latitude.values.ravel()[class_condition]
+    height = nc.height.values.ravel()[class_condition]
+    geoid = nc.geoid.values.ravel()[class_condition]
+    solid_earth_tide = nc.solid_earth_tide.values.ravel()[class_condition]
+    load_tide = nc.load_tide_fes.values.ravel()[class_condition]
+    pole_tide = nc.pole_tide.values.ravel()[class_condition]
+    water_frac = nc.water_frac.values.ravel()[class_condition]
+    phase_noise_std = nc.phase_noise_std.values.ravel()[class_condition]
+    dheight_dphase = nc.dheight_dphase.values.ravel()[class_condition]
+    sig0 = nc.sig0.values.ravel()[class_condition]
 
-    gdf = gpd.GeoDataFrame(pd.DataFrame({"height":height,"heightEGM":heightEGM,"geoid":geoid,"lat":lat_flat,"lon":lon_flat,"class":class_flat[class_flat == 4],"water_frac":water_frac,"phase_noise_std":phase_noise_std,"dheight_dphase":dheight_dphase,"sig0":sig0}),geometry=gpd.points_from_xy(lon_flat,lat_flat))
+    # correction for solid earth/load/pole tide effects (e.g., see SWOT User Handbook, section 3.1.25)
+    heightEGM = height - geoid - solid_earth_tide - load_tide - pole_tide
+
+    gdf = gpd.GeoDataFrame(
+        pd.DataFrame(
+            {
+                "height":height,
+                "heightEGM":heightEGM,
+                "lat":lat_flat,
+                "lon":lon_flat,
+                "geoid":geoid,
+                "solid_earth_tide":solid_earth_tide,
+                "load_tide":load_tide,
+                "pole_tide":pole_tide,
+                "class":class_flat,
+                "water_frac":water_frac,
+                "phase_noise_std":phase_noise_std,
+                "dheight_dphase":dheight_dphase,
+                "sig0":sig0
+            }
+        ),
+        geometry=gpd.points_from_xy(lon_flat,lat_flat)
+    )
     gdf.set_crs(epsg=4326, inplace=True)
 
 
