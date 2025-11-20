@@ -1,6 +1,6 @@
 ![BraidedSP](images/braidedsp.png)
 
-This repository holds the tools and code for the analysis presented within the paper [Franze et al. 2025](https://doi.org/10.1029/2025GL116488). The repo is designed to both provide the original notebooks used to conduct the analysis and create the figures used within the pre-print and also to organize the tools in a way that is easy to add your own data and process similar results for a river of your choosing.
+This repository holds the tools and code for the analysis presented within the paper [Franze et al. 2025](https://doi.org/10.1029/2025GL116488). The repo is designed to both provide the original notebooks used to conduct the analysis and create the figures used within the paper and also to organize the tools in a way that is easy to add your own data and process similar results for a river of your choosing.
 
 ## Publication archive
 All notebooks, functions and figures related to the paper [Franze et al. 2025](https://doi.org/10.1029/2025GL116488) at the time of publishing can be found on the [publication folder](https://github.com/selfr-eo/braidedSP/tree/publication/publication) within the publication branch. Find the README.md, within this folder within to learn more about the notebooks and tools.
