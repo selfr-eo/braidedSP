@@ -1,17 +1,17 @@
 ![BraidedSP](images/braidedsp.png)
 
-This repository holds the tools and code for the analysis presented within the pre-print [Franze et al. 2025](https://essopenarchive.org/doi/full/10.22541/essoar.174558891.16884958). The repo is designed to both provide the original notebooks used to conduct the analysis and create the figures used within the pre-print and also to organize the tools in a way that is easy to add your own data and process similar results for a river of your choosing.
+This repository holds the tools and code for the analysis presented within the paper [Franze et al. 2025](https://doi.org/10.1029/2025GL116488). The repo is designed to both provide the original notebooks used to conduct the analysis and create the figures used within the pre-print and also to organize the tools in a way that is easy to add your own data and process similar results for a river of your choosing.
 
 ## Publication archive
-All notebooks, functions and figures related to the pre-print [Franze et al. 2025](https://essopenarchive.org/doi/full/10.22541/essoar.174558891.16884958) at the time of publishing can be found on the [publication folder](https://github.com/selfr-eo/braidedSP/tree/publication/publication) within the publication branch. Find the README.md, within this folder within to learn more about the notebooks and tools.
+All notebooks, functions and figures related to the paper [Franze et al. 2025](https://doi.org/10.1029/2025GL116488) at the time of publishing can be found on the [publication folder](https://github.com/selfr-eo/braidedSP/tree/publication/publication) within the publication branch. Find the README.md, within this folder within to learn more about the notebooks and tools.
 
 > [!CAUTION]
 > Tools and functionality on the main branch may have been updated, changed or improved since publication. If you are interested in the state of the code at the time of publishing make sure that you are viewing the code on the `publication branch`
 
 ## Why BraidedSP?
 - The standard RiverSP product utilized simplified river centerlines that do not properly describe braided river networks, leading to errors and uncertainties in this product over braided rivers.
-- This work utilized multispectral data from Sentinel-2 to define river masks and derive updated centerlines for braided rivers. The updated centerlines are then used to create a similar 'braidedSP' product that provides node aggregated elevations and widths along braided centerlines. See ![Figure 1](publication/figs/braidedSP_output_updated_09282025.pdf) from [Preprint: Franze et al. 2025](https://essopenarchive.org/doi/full/10.22541/essoar.174558891.16884958).
-- Understanding the differences water surface levels within various branches in braided rivers is crucial for proper hydraulic modeling and morphological studies. We found that there are significant differences between parallel channels in low flow conditions that are not seen by the RiverSP product. Furthermore comparison to high flows shows less difference between river slopes between such channels. See ![Figure 2](publication/figs/slopes_updated_09282025.pdf) from [Preprint: Franze et al. 2025](https://essopenarchive.org/doi/full/10.22541/essoar.174558891.16884958).
+- This work utilized multispectral data from Sentinel-2 to define river masks and derive updated centerlines for braided rivers. The updated centerlines are then used to create a similar 'braidedSP' product that provides node aggregated elevations and widths along braided centerlines. See ![Figure 1](publication/figs/braidedSP_output_updated_09282025.pdf) from [Franze et al. 2025](https://doi.org/10.1029/2025GL116488).
+- Understanding the differences water surface levels within various branches in braided rivers is crucial for proper hydraulic modeling and morphological studies. We found that there are significant differences between parallel channels in low flow conditions that are not seen by the RiverSP product. Furthermore comparison to high flows shows less difference between river slopes between such channels. See ![Figure 2](publication/figs/slopes_updated_09282025.pdf) from [Franze et al. 2025](https://doi.org/10.1029/2025GL116488).
 
 
 
@@ -67,8 +67,8 @@ https://code.earthengine.google.com/c2c5575a6ba1b2d728cdd5026689bb85
 
 ## Cite braidedSP
 
-In case you use braidedSP in your research or work, it would be highly appreciated if you include a reference to our [Pre-Print](https://essopenarchive.org/doi/full/10.22541/essoar.174558891.16884958) or final publication in any kind of publication.
+In case you use braidedSP in your research or work, it would be highly appreciated if you include a reference to our [Publication](https://doi.org/10.1029/2025GL116488).
 
 
-Cite as: Sarah Elizabeth Franze, Simon Jakob Köhn,  Connor Chewning, Karina Nielsen. Braided rivers from SWOT: Water surface dynamics over multi-channel rivers. ESS Open Archive . April 25, 2025.
-DOI: 10.22541/essoar.174558891.16884958/v1
+Cite as: 
+Franze, S. E., Köhn, S., Chewning, C., & Nielsen, K. (2025). Braided rivers from SWOT: Water surface dynamics over the multi-channel Brahmaputra river. Geophysical Research Letters, 52, e2025GL116488. https://doi.org/10.1029/2025GL116488
